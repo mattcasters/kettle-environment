@@ -68,6 +68,5 @@ public class EnvironmentUtil {
         delegatingMetaStore.setActiveMetaStoreName( metaStore.getName() );
       }
     }
-
   }
 }
