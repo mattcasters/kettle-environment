@@ -66,7 +66,7 @@ public class EnvironmentUtil {
         metaStore = MetaStoreConst.openLocalPentahoMetaStore();
         delegatingMetaStore.getMetaStoreList().set( index, metaStore );
         delegatingMetaStore.setActiveMetaStoreName( metaStore.getName() );
-     vi }
+      }
     }
   }
 }
