@@ -30,7 +30,7 @@ import org.pentaho.di.ui.spoon.SpoonPluginInterface;
 import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 
-@SpoonPlugin( id = "Debug", image = "" )
+@SpoonPlugin( id = "Kettle Environment", image = "" )
 @SpoonPluginCategories( { "spoon", "trans-graph" } )
 public class EnvironmentSpoonPlugin implements SpoonPluginInterface {
 
