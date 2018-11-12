@@ -69,7 +69,7 @@ public class EnvironmentsDialog extends Dialog {
     FormLayout formLayout = new FormLayout();
 
     shell.setLayout( formLayout );
-    shell.setText( "Graph Model Editor" );
+    shell.setText( "Environments" );
 
     Button wOK = new Button( shell, SWT.PUSH );
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
@@ -83,7 +83,7 @@ public class EnvironmentsDialog extends Dialog {
 
     Label wlEnvironments = new Label( shell, SWT.LEFT );
     props.setLook( wlEnvironments );
-    wlEnvironments.setText( "Environments: " );
+    wlEnvironments.setText( "Select an Environment to use: " );
     FormData fdlEnvironments = new FormData();
     fdlEnvironments.left = new FormAttachment( 0, 0 );
     fdlEnvironments.top = new FormAttachment( 0, 0 );

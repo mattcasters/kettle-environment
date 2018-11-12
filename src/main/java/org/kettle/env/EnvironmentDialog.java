@@ -76,7 +76,7 @@ public class EnvironmentDialog extends Dialog {
     FormLayout formLayout = new FormLayout();
 
     shell.setLayout( formLayout );
-    shell.setText( "Graph Model Editor" );
+    shell.setText( "Environment dialog" );
 
     Button wOK = new Button( shell, SWT.PUSH );
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
