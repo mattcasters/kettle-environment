@@ -1,4 +1,4 @@
-package org.kettle.util;
+package org.kettle.env.util;
 
 import org.pentaho.di.core.Const;
 

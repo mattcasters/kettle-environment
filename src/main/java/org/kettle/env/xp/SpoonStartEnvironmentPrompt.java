@@ -1,11 +1,11 @@
-package org.kettle.xp;
+package org.kettle.env.xp;
 
 import org.apache.commons.lang.StringUtils;
 import org.kettle.env.Environment;
 import org.kettle.env.EnvironmentSingleton;
 import org.kettle.env.EnvironmentsDialog;
-import org.kettle.util.Defaults;
-import org.kettle.util.EnvironmentUtil;
+import org.kettle.env.util.Defaults;
+import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;

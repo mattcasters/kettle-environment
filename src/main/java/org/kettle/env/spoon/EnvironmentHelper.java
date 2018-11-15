@@ -20,24 +20,18 @@
  *
  ******************************************************************************/
 
-package org.kettle;
+package org.kettle.env.spoon;
 
-import org.apache.commons.lang.StringUtils;
-import org.kettle.util.Defaults;
-import org.pentaho.di.core.Const;
+import org.kettle.env.Environment;
+import org.kettle.env.EnvironmentSingleton;
+import org.kettle.env.EnvironmentsDialog;
+import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.gui.SpoonFactory;
-import org.pentaho.di.core.logging.LogLevel;
-import org.pentaho.di.trans.TransMeta;
-import org.pentaho.di.trans.step.StepMeta;
-import org.pentaho.di.ui.core.dialog.EnterSelectionDialog;
+import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.spoon.ISpoonMenuController;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.spoon.trans.TransGraph;
 import org.pentaho.ui.xul.dom.Document;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoonMenuController {
   protected static Class<?> PKG = EnvironmentHelper.class; // for i18n
@@ -64,5 +58,23 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
     // Nothing so far.
   }
 
+  public void switchEnvironment() {
+    Spoon spoon = Spoon.getInstance();
+    try {
 
+      EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
+      String selectedEnvironment = environmentsDialog.open();
+      if ( selectedEnvironment != null ) {
+
+        Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
+        spoon.getLog().logBasic( "Setting environment : '" + environment.getName() + "'" );
+
+        // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
+        //
+        EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
+      }
+    } catch(Exception e) {
+      new ErrorDialog( spoon.getShell(), "Error", "Error changing environment", e );
+    }
+  }
 }

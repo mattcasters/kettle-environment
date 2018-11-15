@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.kettle;
+package org.kettle.env.spoon;
 
 import org.pentaho.di.ui.spoon.SpoonLifecycleListener;
 import org.pentaho.di.ui.spoon.SpoonPerspective;
@@ -31,7 +31,7 @@ import org.pentaho.ui.xul.XulDomContainer;
 import org.pentaho.ui.xul.XulException;
 
 @SpoonPlugin( id = "Kettle Environment", image = "" )
-@SpoonPluginCategories( { "spoon", "trans-graph" } )
+@SpoonPluginCategories( { "spoon" } )
 public class EnvironmentSpoonPlugin implements SpoonPluginInterface {
 
   public EnvironmentSpoonPlugin() {
@@ -41,7 +41,7 @@ public class EnvironmentSpoonPlugin implements SpoonPluginInterface {
     container.registerClassLoader( getClass().getClassLoader() );
 
     if ( category.equals( "spoon" ) ) {
-      container.loadOverlay( "org/kettle/xul/spoon_overlays.xul" );
+      container.loadOverlay( "org/kettle/env/spoon/xul/spoon_overlays.xul" );
       container.addEventHandler( EnvironmentHelper.getInstance() );
     }
   }

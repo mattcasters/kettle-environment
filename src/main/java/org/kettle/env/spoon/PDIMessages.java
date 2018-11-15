@@ -20,7 +20,7 @@
  *
  ******************************************************************************/
 
-package org.kettle;
+package org.kettle.env.spoon;
 
 import java.util.Enumeration;
 import java.util.ResourceBundle;

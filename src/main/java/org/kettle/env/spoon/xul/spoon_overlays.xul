@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="file://E:/workspaces/sprint_workspace/pentaho-xul/test/resource/documents/xul.css" type="text/css"?>
+<overlay id="spoon-trans-graph-popupmenu-dataset" title="TransGraph DataSet Menu"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:HTML="http://www.w3.org/Profiles/XHTML-transitional" height="600"
+	width="800" xmlns:pen="http://www.pentaho.org/2008/xul">
+
+  <!-- 
+     
+     This is the overlay for the Spoon Tools menu
+     
+   -->
+
+  <menubar id="spoon-menubar">
+
+    <menu id="environment" label="Environment" accesskey="alt-v">
+      <menupopup id="environment-popup">
+        <menuitem id="environment-new" label="Switch" command="environmentHelper.switchEnvironment()"/>
+      </menupopup>
+    </menu>
+
+  </menubar>
+
+  <!--
+
+    <menupopup id="tools-popup">
+    </menupopup>
+
+   -->
+
+
+</overlay>

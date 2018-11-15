@@ -1,22 +1,15 @@
-package org.kettle.xp;
+package org.kettle.env.xp;
 
 import org.apache.commons.lang.StringUtils;
 import org.kettle.env.Environment;
 import org.kettle.env.EnvironmentSingleton;
-import org.kettle.env.EnvironmentsDialog;
-import org.kettle.util.Defaults;
-import org.kettle.util.EnvironmentUtil;
+import org.kettle.env.util.Defaults;
+import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
-import org.pentaho.di.core.variables.VariableSpace;
-import org.pentaho.di.core.variables.Variables;
-import org.pentaho.di.ui.core.dialog.ErrorDialog;
-import org.pentaho.di.ui.spoon.Spoon;
-
-import java.util.List;
 
 @ExtensionPoint(
   id = "MaitreStartEnvironmentChange",
