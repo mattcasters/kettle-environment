@@ -43,6 +43,8 @@ public class EnvironmentDialog extends Dialog {
   private Text wHomeFolder;
   private Text wMetaStoreBaseFolder;
   private Text wSpoonGitProject;
+  private Text wUnitTestsBasePath;
+  private Text wDataSetCsvFolder;
   private TableView wVariables;
 
   private int margin;
@@ -243,6 +245,40 @@ public class EnvironmentDialog extends Dialog {
     wSpoonGitProject.setLayoutData( fdSpoonGitProject );
     lastControl = wSpoonGitProject;
 
+    Label wlUnitTestsBasePath = new Label( shell, SWT.RIGHT );
+    props.setLook( wlUnitTestsBasePath );
+    wlUnitTestsBasePath.setText( "Unit tests base path " );
+    FormData fdlUnitTestsBasePath = new FormData();
+    fdlUnitTestsBasePath.left = new FormAttachment( 0, 0 );
+    fdlUnitTestsBasePath.right = new FormAttachment( middle, 0 );
+    fdlUnitTestsBasePath.top = new FormAttachment( lastControl, margin );
+    wlUnitTestsBasePath.setLayoutData( fdlUnitTestsBasePath );
+    wUnitTestsBasePath = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    props.setLook( wUnitTestsBasePath );
+    FormData fdUnitTestsBasePath = new FormData();
+    fdUnitTestsBasePath.left = new FormAttachment( middle, margin );
+    fdUnitTestsBasePath.right = new FormAttachment( 100, 0 );
+    fdUnitTestsBasePath.top = new FormAttachment( wlUnitTestsBasePath, 0, SWT.CENTER );
+    wUnitTestsBasePath.setLayoutData( fdUnitTestsBasePath );
+    lastControl = wUnitTestsBasePath;
+
+    Label wlDataSetCsvFolder = new Label( shell, SWT.RIGHT );
+    props.setLook( wlDataSetCsvFolder );
+    wlDataSetCsvFolder.setText( "Data Sets CSV Folder " );
+    FormData fdlDataSetCsvFolder = new FormData();
+    fdlDataSetCsvFolder.left = new FormAttachment( 0, 0 );
+    fdlDataSetCsvFolder.right = new FormAttachment( middle, 0 );
+    fdlDataSetCsvFolder.top = new FormAttachment( lastControl, margin );
+    wlDataSetCsvFolder.setLayoutData( fdlDataSetCsvFolder );
+    wDataSetCsvFolder = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    props.setLook( wDataSetCsvFolder );
+    FormData fdDataSetCsvFolder = new FormData();
+    fdDataSetCsvFolder.left = new FormAttachment( middle, margin );
+    fdDataSetCsvFolder.right = new FormAttachment( 100, 0 );
+    fdDataSetCsvFolder.top = new FormAttachment( wlDataSetCsvFolder, 0, SWT.CENTER );
+    wDataSetCsvFolder.setLayoutData( fdDataSetCsvFolder );
+    lastControl = wDataSetCsvFolder;
+
     Label wlVariables = new Label( shell, SWT.RIGHT );
     props.setLook( wlVariables );
     wlVariables.setText( "System variables to set : " );
@@ -280,7 +316,9 @@ public class EnvironmentDialog extends Dialog {
     wHomeFolder.addListener( SWT.DefaultSelection, (e)->ok() );
     wMetaStoreBaseFolder.addListener( SWT.DefaultSelection, (e)->ok() );
     wSpoonGitProject.addListener( SWT.DefaultSelection, (e)->ok() );
-    
+    wUnitTestsBasePath.addListener( SWT.DefaultSelection, (e)->ok() );
+    wDataSetCsvFolder.addListener( SWT.DefaultSelection, (e)->ok() );
+
     // Set the shell size, based upon previous time...
     BaseStepDialog.setSize( shell );
 
@@ -325,6 +363,8 @@ public class EnvironmentDialog extends Dialog {
     wHomeFolder.setText( Const.NVL( environment.getHomeFolder(), "" ) );
     wMetaStoreBaseFolder.setText( Const.NVL( environment.getMetaStoreBaseFolder(), "" ) );
     wSpoonGitProject.setText( Const.NVL( environment.getSpoonGitProject(), "" ) );
+    wUnitTestsBasePath.setText( Const.NVL( environment.getUnitTestsBasePath(), "" ) );
+    wDataSetCsvFolder.setText( Const.NVL( environment.getDataSetsCsvFolder(), "" ) );
     for (int i=0;i<environment.getVariables().size();i++) {
       EnvironmentVariable environmentVariable = environment.getVariables().get( i );
       TableItem item = wVariables.table.getItem( i );
@@ -345,6 +385,8 @@ public class EnvironmentDialog extends Dialog {
     env.setHomeFolder( wHomeFolder.getText() );
     env.setMetaStoreBaseFolder( wMetaStoreBaseFolder.getText() );
     env.setSpoonGitProject( wSpoonGitProject.getText() );
+    env.setUnitTestsBasePath( wUnitTestsBasePath.getText() );
+    env.setDataSetsCsvFolder( wDataSetCsvFolder.getText() );
     env.getVariables().clear();
     for (int i=0;i<wVariables.nrNonEmpty();i++) {
       TableItem item = wVariables.getNonEmpty( i );

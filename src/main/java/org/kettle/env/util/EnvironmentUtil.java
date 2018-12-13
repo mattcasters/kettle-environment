@@ -15,6 +15,11 @@ import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 
 public class EnvironmentUtil {
+
+  public static final String VARIABLE_DATASETS_BASE_PATH = "DATASETS_BASE_PATH";
+  public static final String VARIABLE_UNIT_TESTS_BASE_PATH = "UNIT_TESTS_BASE_PATH";
+
+
   /**
    * Enable the specified environment
    * Force reload of a number of settings
@@ -32,6 +37,15 @@ public class EnvironmentUtil {
     if (StringUtils.isNotEmpty(environment.getMetaStoreBaseFolder())) {
       System.setProperty( Const.PENTAHO_METASTORE_FOLDER, environment.getMetaStoreBaseFolder());
     }
+
+    if (StringUtils.isNotEmpty(environment.getUnitTestsBasePath())) {
+      System.setProperty( VARIABLE_UNIT_TESTS_BASE_PATH, environment.getUnitTestsBasePath());
+    }
+
+    if (StringUtils.isNotEmpty(environment.getDataSetsCsvFolder())) {
+      System.setProperty( VARIABLE_DATASETS_BASE_PATH, environment.getDataSetsCsvFolder());
+    }
+
 
     for ( EnvironmentVariable environmentVariable : environment.getVariables()) {
       if (environmentVariable.getName()!=null) {

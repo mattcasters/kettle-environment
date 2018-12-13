@@ -43,6 +43,14 @@ public class Environment {
   @MetaStoreAttribute
   private String spoonGitProject;
 
+  // Data Sets , Unit tests
+  //
+  @MetaStoreAttribute
+  private String unitTestsBasePath;
+
+  @MetaStoreAttribute
+  private String dataSetsCsvFolder;
+
   // Variables
   //
   @MetaStoreAttribute
@@ -195,6 +203,38 @@ public class Environment {
    */
   public void setVersion( String version ) {
     this.version = version;
+  }
+
+  /**
+   * Gets unitTestsBasePath
+   *
+   * @return value of unitTestsBasePath
+   */
+  public String getUnitTestsBasePath() {
+    return unitTestsBasePath;
+  }
+
+  /**
+   * @param unitTestsBasePath The unitTestsBasePath to set
+   */
+  public void setUnitTestsBasePath( String unitTestsBasePath ) {
+    this.unitTestsBasePath = unitTestsBasePath;
+  }
+
+  /**
+   * Gets dataSetsCsvFolder
+   *
+   * @return value of dataSetsCsvFolder
+   */
+  public String getDataSetsCsvFolder() {
+    return dataSetsCsvFolder;
+  }
+
+  /**
+   * @param dataSetsCsvFolder The dataSetsCsvFolder to set
+   */
+  public void setDataSetsCsvFolder( String dataSetsCsvFolder ) {
+    this.dataSetsCsvFolder = dataSetsCsvFolder;
   }
 
   /**
