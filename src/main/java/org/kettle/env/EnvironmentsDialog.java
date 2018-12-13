@@ -192,7 +192,7 @@ public class EnvironmentsDialog extends Dialog {
 
   private void addEnvironment() {
     Environment environment = new Environment();
-    environment.setName( "Environment #" + wEnvironments.getItemCount() + 1 );
+    environment.setName( "Environment #" + (wEnvironments.getItemCount() + 1) );
     EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
     if ( environmentDialog.open() ) {
       try {
@@ -209,7 +209,7 @@ public class EnvironmentsDialog extends Dialog {
     try {
       Environment environment = new Environment();
       environment.setName( "Default" );
-      environment.setHomeFolder( System.getProperty( "user.home" ) );
+      environment.setKettleHomeFolder( System.getProperty( "user.home" ) );
       environment.setMetaStoreBaseFolder( MetaStoreConst.getDefaultPentahoMetaStoreLocation() );
       environmentFactory.saveElement( environment );
     } catch ( Exception e ) {

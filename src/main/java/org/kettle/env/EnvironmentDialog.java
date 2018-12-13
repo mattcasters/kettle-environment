@@ -1,6 +1,9 @@
 package org.kettle.env;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -12,7 +15,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.Const;
+import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.ui.core.PropsUI;
@@ -20,6 +25,7 @@ import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
 import org.pentaho.di.ui.core.widget.TableView;
+import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 
@@ -40,26 +46,33 @@ public class EnvironmentDialog extends Dialog {
   private Text wDepartment;
   private Text wProject;
   private Text wVersion;
-  private Text wHomeFolder;
-  private Text wMetaStoreBaseFolder;
-  private Text wSpoonGitProject;
-  private Text wUnitTestsBasePath;
-  private Text wDataSetCsvFolder;
+
+  private TextVar wEnvironmentHome;
+  private TextVar wKettleHomeFolder;
+  private TextVar wMetaStoreBaseFolder;
+  private TextVar wSpoonGitProject;
+  private TextVar wUnitTestsBasePath;
+  private TextVar wDataSetCsvFolder;
   private TableView wVariables;
 
   private int margin;
   private int middle;
   private final MetaStoreFactory<Environment> environmentFactory;
 
+  private VariableSpace space;
+
   public EnvironmentDialog( Shell parent, Environment environment ) {
     super( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
-
 
     this.environment = environment;
 
     props = PropsUI.getInstance();
 
     environmentFactory = EnvironmentSingleton.getEnvironmentFactory();
+
+    space = new Variables();
+    space.initializeVariablesFrom( null );
+    environment.modifyVariableSpace( space );
 
   }
 
@@ -194,38 +207,58 @@ public class EnvironmentDialog extends Dialog {
     wVersion.setLayoutData( fdVersion );
     lastControl = wVersion;
 
-    Label wlHomeFolder = new Label( shell, SWT.RIGHT );
-    props.setLook( wlHomeFolder );
-    wlHomeFolder.setText( "Home folder " );
-    FormData fdlHomeFolder = new FormData();
-    fdlHomeFolder.left = new FormAttachment( 0, 0 );
-    fdlHomeFolder.right = new FormAttachment( middle, 0 );
-    fdlHomeFolder.top = new FormAttachment( lastControl, margin );
-    wlHomeFolder.setLayoutData( fdlHomeFolder );
-    wHomeFolder = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
-    props.setLook( wHomeFolder );
-    FormData fdHomeFolder = new FormData();
-    fdHomeFolder.left = new FormAttachment( middle, margin );
-    fdHomeFolder.right = new FormAttachment( 100, 0 );
-    fdHomeFolder.top = new FormAttachment( wlHomeFolder, 0, SWT.CENTER );
-    wHomeFolder.setLayoutData( fdHomeFolder );
-    lastControl = wHomeFolder;
+    Label wlEnvironmentHome = new Label( shell, SWT.RIGHT );
+    props.setLook( wlEnvironmentHome );
+    wlEnvironmentHome.setText( "Environment base folder (" + EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME + ") " );
+    FormData fdlEnvironmentHome = new FormData();
+    fdlEnvironmentHome.left = new FormAttachment( 0, 0 );
+    fdlEnvironmentHome.right = new FormAttachment( middle, 0 );
+    fdlEnvironmentHome.top = new FormAttachment( lastControl, margin );
+    wlEnvironmentHome.setLayoutData( fdlEnvironmentHome );
+    wEnvironmentHome = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    props.setLook( wEnvironmentHome );
+    FormData fdEnvironmentHome = new FormData();
+    fdEnvironmentHome.left = new FormAttachment( middle, margin );
+    fdEnvironmentHome.right = new FormAttachment( 100, 0 );
+    fdEnvironmentHome.top = new FormAttachment( wlEnvironmentHome, 0, SWT.CENTER );
+    wEnvironmentHome.setLayoutData( fdEnvironmentHome );
+    wEnvironmentHome.addModifyListener( e->updateVariableSpace());
+    lastControl = wEnvironmentHome;
+
+    Label wlKettleHomeFolder = new Label( shell, SWT.RIGHT );
+    props.setLook( wlKettleHomeFolder );
+    wlKettleHomeFolder.setText( "Kettle Home folder (KETTLE_HOME) " );
+    FormData fdlKettleHomeFolder = new FormData();
+    fdlKettleHomeFolder.left = new FormAttachment( 0, 0 );
+    fdlKettleHomeFolder.right = new FormAttachment( middle, 0 );
+    fdlKettleHomeFolder.top = new FormAttachment( lastControl, margin );
+    wlKettleHomeFolder.setLayoutData( fdlKettleHomeFolder );
+    wKettleHomeFolder = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    props.setLook( wKettleHomeFolder );
+    FormData fdKettleHomeFolder = new FormData();
+    fdKettleHomeFolder.left = new FormAttachment( middle, margin );
+    fdKettleHomeFolder.right = new FormAttachment( 100, 0 );
+    fdKettleHomeFolder.top = new FormAttachment( wlKettleHomeFolder, 0, SWT.CENTER );
+    wKettleHomeFolder.setLayoutData( fdKettleHomeFolder );
+    wKettleHomeFolder.addModifyListener( e->updateVariableSpace());
+    lastControl = wKettleHomeFolder;
 
     Label wlMetaStoreBaseFolder = new Label( shell, SWT.RIGHT );
     props.setLook( wlMetaStoreBaseFolder );
-    wlMetaStoreBaseFolder.setText( "MetaStore base folder " );
+    wlMetaStoreBaseFolder.setText( "MetaStore base folder (PENTAHO_METASTORE_FOLDER)" );
     FormData fdlMetaStoreBaseFolder = new FormData();
     fdlMetaStoreBaseFolder.left = new FormAttachment( 0, 0 );
     fdlMetaStoreBaseFolder.right = new FormAttachment( middle, 0 );
     fdlMetaStoreBaseFolder.top = new FormAttachment( lastControl, margin );
     wlMetaStoreBaseFolder.setLayoutData( fdlMetaStoreBaseFolder );
-    wMetaStoreBaseFolder = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    wMetaStoreBaseFolder = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
     props.setLook( wMetaStoreBaseFolder );
     FormData fdMetaStoreBaseFolder = new FormData();
     fdMetaStoreBaseFolder.left = new FormAttachment( middle, margin );
     fdMetaStoreBaseFolder.right = new FormAttachment( 100, 0 );
     fdMetaStoreBaseFolder.top = new FormAttachment( wlMetaStoreBaseFolder, 0, SWT.CENTER );
     wMetaStoreBaseFolder.setLayoutData( fdMetaStoreBaseFolder );
+    wMetaStoreBaseFolder.addModifyListener( e->updateVariableSpace());
     lastControl = wMetaStoreBaseFolder;
 
     Label wlSpoonGitProject = new Label( shell, SWT.RIGHT );
@@ -236,7 +269,7 @@ public class EnvironmentDialog extends Dialog {
     fdlSpoonGitProject.right = new FormAttachment( middle, 0 );
     fdlSpoonGitProject.top = new FormAttachment( lastControl, margin );
     wlSpoonGitProject.setLayoutData( fdlSpoonGitProject );
-    wSpoonGitProject = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    wSpoonGitProject = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
     props.setLook( wSpoonGitProject );
     FormData fdSpoonGitProject = new FormData();
     fdSpoonGitProject.left = new FormAttachment( middle, margin );
@@ -247,36 +280,38 @@ public class EnvironmentDialog extends Dialog {
 
     Label wlUnitTestsBasePath = new Label( shell, SWT.RIGHT );
     props.setLook( wlUnitTestsBasePath );
-    wlUnitTestsBasePath.setText( "Unit tests base path " );
+    wlUnitTestsBasePath.setText( "Unit tests base path (UNIT_TESTS_BASE_PATH) " );
     FormData fdlUnitTestsBasePath = new FormData();
     fdlUnitTestsBasePath.left = new FormAttachment( 0, 0 );
     fdlUnitTestsBasePath.right = new FormAttachment( middle, 0 );
     fdlUnitTestsBasePath.top = new FormAttachment( lastControl, margin );
     wlUnitTestsBasePath.setLayoutData( fdlUnitTestsBasePath );
-    wUnitTestsBasePath = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    wUnitTestsBasePath = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
     props.setLook( wUnitTestsBasePath );
     FormData fdUnitTestsBasePath = new FormData();
     fdUnitTestsBasePath.left = new FormAttachment( middle, margin );
     fdUnitTestsBasePath.right = new FormAttachment( 100, 0 );
     fdUnitTestsBasePath.top = new FormAttachment( wlUnitTestsBasePath, 0, SWT.CENTER );
     wUnitTestsBasePath.setLayoutData( fdUnitTestsBasePath );
+    wUnitTestsBasePath.addModifyListener( e->updateVariableSpace());
     lastControl = wUnitTestsBasePath;
 
     Label wlDataSetCsvFolder = new Label( shell, SWT.RIGHT );
     props.setLook( wlDataSetCsvFolder );
-    wlDataSetCsvFolder.setText( "Data Sets CSV Folder " );
+    wlDataSetCsvFolder.setText( "Data Sets CSV Folder (DATASETS_BASE_PATH)" );
     FormData fdlDataSetCsvFolder = new FormData();
     fdlDataSetCsvFolder.left = new FormAttachment( 0, 0 );
     fdlDataSetCsvFolder.right = new FormAttachment( middle, 0 );
     fdlDataSetCsvFolder.top = new FormAttachment( lastControl, margin );
     wlDataSetCsvFolder.setLayoutData( fdlDataSetCsvFolder );
-    wDataSetCsvFolder = new Text( shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    wDataSetCsvFolder = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
     props.setLook( wDataSetCsvFolder );
     FormData fdDataSetCsvFolder = new FormData();
     fdDataSetCsvFolder.left = new FormAttachment( middle, margin );
     fdDataSetCsvFolder.right = new FormAttachment( 100, 0 );
     fdDataSetCsvFolder.top = new FormAttachment( wlDataSetCsvFolder, 0, SWT.CENTER );
     wDataSetCsvFolder.setLayoutData( fdDataSetCsvFolder );
+    wDataSetCsvFolder.addModifyListener( e->updateVariableSpace());
     lastControl = wDataSetCsvFolder;
 
     Label wlVariables = new Label( shell, SWT.RIGHT );
@@ -292,8 +327,8 @@ public class EnvironmentDialog extends Dialog {
       new ColumnInfo( "Name", ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
       new ColumnInfo( "Value", ColumnInfo.COLUMN_TYPE_TEXT, false, false ),
     };
-    columnInfo[0].setUsingVariables( true );
-    columnInfo[1].setUsingVariables( true );
+    columnInfo[ 0 ].setUsingVariables( true );
+    columnInfo[ 1 ].setUsingVariables( true );
 
     wVariables = new TableView( new Variables(), shell, SWT.NONE, columnInfo, environment.getVariables().size(), null, props );
     props.setLook( wVariables );
@@ -301,23 +336,24 @@ public class EnvironmentDialog extends Dialog {
     fdVariables.left = new FormAttachment( 0, 0 );
     fdVariables.right = new FormAttachment( 100, 0 );
     fdVariables.top = new FormAttachment( wlVariables, margin );
-    fdVariables.bottom = new FormAttachment( wOK, -margin*2 );
+    fdVariables.bottom = new FormAttachment( wOK, -margin * 2 );
     wVariables.setLayoutData( fdVariables );
     // lastControl = wVariables;
 
     // When enter is hit, close the dialog
     //
-    wName.addListener( SWT.DefaultSelection, (e)->ok() );
-    wDescription.addListener( SWT.DefaultSelection, (e)->ok() );
-    wCompany.addListener( SWT.DefaultSelection, (e)->ok() );
-    wDepartment.addListener( SWT.DefaultSelection, (e)->ok() );
-    wProject.addListener( SWT.DefaultSelection, (e)->ok() );
-    wVersion.addListener( SWT.DefaultSelection, (e)->ok() );
-    wHomeFolder.addListener( SWT.DefaultSelection, (e)->ok() );
-    wMetaStoreBaseFolder.addListener( SWT.DefaultSelection, (e)->ok() );
-    wSpoonGitProject.addListener( SWT.DefaultSelection, (e)->ok() );
-    wUnitTestsBasePath.addListener( SWT.DefaultSelection, (e)->ok() );
-    wDataSetCsvFolder.addListener( SWT.DefaultSelection, (e)->ok() );
+    wName.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wDescription.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wCompany.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wDepartment.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wProject.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wVersion.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wEnvironmentHome.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wKettleHomeFolder.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wMetaStoreBaseFolder.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wSpoonGitProject.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wUnitTestsBasePath.addListener( SWT.DefaultSelection, ( e ) -> ok() );
+    wDataSetCsvFolder.addListener( SWT.DefaultSelection, ( e ) -> ok() );
 
     // Set the shell size, based upon previous time...
     BaseStepDialog.setSize( shell );
@@ -333,6 +369,12 @@ public class EnvironmentDialog extends Dialog {
     }
 
     return ok;
+  }
+
+  private void updateVariableSpace() {
+    Environment env = new Environment();
+    getInfo( env );
+    env.modifyVariableSpace(space);
   }
 
   private void ok() {
@@ -360,16 +402,17 @@ public class EnvironmentDialog extends Dialog {
     wDepartment.setText( Const.NVL( environment.getDepartment(), "" ) );
     wProject.setText( Const.NVL( environment.getProject(), "" ) );
     wVersion.setText( Const.NVL( environment.getVersion(), "" ) );
-    wHomeFolder.setText( Const.NVL( environment.getHomeFolder(), "" ) );
+    wEnvironmentHome.setText( Const.NVL( environment.getEnvironmentHomeFolder(), "" ) );
+    wKettleHomeFolder.setText( Const.NVL( environment.getKettleHomeFolder(), "" ) );
     wMetaStoreBaseFolder.setText( Const.NVL( environment.getMetaStoreBaseFolder(), "" ) );
     wSpoonGitProject.setText( Const.NVL( environment.getSpoonGitProject(), "" ) );
     wUnitTestsBasePath.setText( Const.NVL( environment.getUnitTestsBasePath(), "" ) );
     wDataSetCsvFolder.setText( Const.NVL( environment.getDataSetsCsvFolder(), "" ) );
-    for (int i=0;i<environment.getVariables().size();i++) {
+    for ( int i = 0; i < environment.getVariables().size(); i++ ) {
       EnvironmentVariable environmentVariable = environment.getVariables().get( i );
       TableItem item = wVariables.table.getItem( i );
-      item.setText( 1, Const.NVL(environmentVariable.getName(), "") );
-      item.setText( 2, Const.NVL(environmentVariable.getValue(), "") );
+      item.setText( 1, Const.NVL( environmentVariable.getName(), "" ) );
+      item.setText( 2, Const.NVL( environmentVariable.getValue(), "" ) );
     }
     wVariables.setRowNums();
     wVariables.optWidth( true );
@@ -382,15 +425,16 @@ public class EnvironmentDialog extends Dialog {
     env.setDepartment( wDepartment.getText() );
     env.setProject( wProject.getText() );
     env.setVersion( wVersion.getText() );
-    env.setHomeFolder( wHomeFolder.getText() );
+    env.setEnvironmentHomeFolder( wEnvironmentHome.getText() );
+    env.setKettleHomeFolder( wKettleHomeFolder.getText() );
     env.setMetaStoreBaseFolder( wMetaStoreBaseFolder.getText() );
     env.setSpoonGitProject( wSpoonGitProject.getText() );
     env.setUnitTestsBasePath( wUnitTestsBasePath.getText() );
     env.setDataSetsCsvFolder( wDataSetCsvFolder.getText() );
     env.getVariables().clear();
-    for (int i=0;i<wVariables.nrNonEmpty();i++) {
+    for ( int i = 0; i < wVariables.nrNonEmpty(); i++ ) {
       TableItem item = wVariables.getNonEmpty( i );
-      env.getVariables().add( new EnvironmentVariable( item.getText(1), item.getText( 2 ) ));
+      env.getVariables().add( new EnvironmentVariable( item.getText( 1 ), item.getText( 2 ) ) );
     }
   }
 }

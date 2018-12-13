@@ -9,6 +9,7 @@ import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.util.EnvUtil;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
@@ -16,6 +17,7 @@ import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
 
 public class EnvironmentUtil {
 
+  public static final String VARIABLE_ENVIRONMENT_HOME = "ENVIRONMENT_HOME";
   public static final String VARIABLE_DATASETS_BASE_PATH = "DATASETS_BASE_PATH";
   public static final String VARIABLE_UNIT_TESTS_BASE_PATH = "UNIT_TESTS_BASE_PATH";
 
@@ -31,27 +33,8 @@ public class EnvironmentUtil {
    * @throws MetaStoreException
    */
   public static void enableEnvironment( Environment environment, DelegatingMetaStore delegatingMetaStore) throws KettleException, MetaStoreException {
-    if ( StringUtils.isNotEmpty(environment.getHomeFolder())) {
-      System.setProperty( "KETTLE_HOME", environment.getHomeFolder());
-    }
-    if (StringUtils.isNotEmpty(environment.getMetaStoreBaseFolder())) {
-      System.setProperty( Const.PENTAHO_METASTORE_FOLDER, environment.getMetaStoreBaseFolder());
-    }
 
-    if (StringUtils.isNotEmpty(environment.getUnitTestsBasePath())) {
-      System.setProperty( VARIABLE_UNIT_TESTS_BASE_PATH, environment.getUnitTestsBasePath());
-    }
-
-    if (StringUtils.isNotEmpty(environment.getDataSetsCsvFolder())) {
-      System.setProperty( VARIABLE_DATASETS_BASE_PATH, environment.getDataSetsCsvFolder());
-    }
-
-
-    for ( EnvironmentVariable environmentVariable : environment.getVariables()) {
-      if (environmentVariable.getName()!=null) {
-        System.setProperty( environmentVariable.getName(), environmentVariable.getValue() );
-      }
-    }
+    environment.modifySystem();
 
     // Create Kettle home folder in case it doesn't exist
     //

@@ -1,5 +1,10 @@
 package org.kettle.env;
 
+import org.apache.commons.lang.StringUtils;
+import org.kettle.env.util.EnvironmentUtil;
+import org.pentaho.di.core.Const;
+import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 
@@ -26,15 +31,21 @@ public class Environment {
   //
   @MetaStoreAttribute
   private String company;
+
   @MetaStoreAttribute
   private String department;
+
   @MetaStoreAttribute
   private String project;
 
   // Technical information
   //
   @MetaStoreAttribute
-  private String homeFolder;
+  private String environmentHomeFolder;
+
+  @MetaStoreAttribute( key = "homeFolder" )
+  private String kettleHomeFolder;
+
   @MetaStoreAttribute
   private String metaStoreBaseFolder;
 
@@ -59,6 +70,71 @@ public class Environment {
 
   public Environment() {
     variables = new ArrayList<>();
+    environmentHomeFolder="/path/to/your/environment/folder/";
+    metaStoreBaseFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
+    dataSetsCsvFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}/datasets";
+    unitTestsBasePath="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
+  }
+
+  public void modifySystem() {
+    modifyVariableSpace( null, true );
+  }
+
+  public void modifyVariableSpace( VariableSpace space ) {
+    modifyVariableSpace( space, false );
+  }
+
+  private void modifyVariableSpace( VariableSpace space, boolean modifySystem ) {
+
+    if (space==null) {
+      space = new Variables();
+      space.initializeVariablesFrom(null);
+    }
+
+    if ( StringUtils.isNotEmpty( environmentHomeFolder ) ) {
+      String realValue = space.environmentSubstitute( environmentHomeFolder );
+      space.setVariable( EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME, realValue );
+      if ( modifySystem ) {
+        System.setProperty( EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME, realValue );
+      }
+    }
+    if ( StringUtils.isNotEmpty( kettleHomeFolder ) ) {
+      String realValue = space.environmentSubstitute( kettleHomeFolder );
+      space.setVariable( "KETTLE_HOME", realValue );
+      if ( modifySystem ) {
+        System.setProperty( "KETTLE_HOME", realValue );
+      }
+    }
+    if ( StringUtils.isNotEmpty( metaStoreBaseFolder ) ) {
+      String realValue = space.environmentSubstitute( metaStoreBaseFolder );
+      space.setVariable( Const.PENTAHO_METASTORE_FOLDER, realValue );
+      if ( modifySystem ) {
+        System.setProperty( Const.PENTAHO_METASTORE_FOLDER, realValue );
+      }
+    }
+    if ( StringUtils.isNotEmpty( unitTestsBasePath ) ) {
+      String realValue = space.environmentSubstitute( unitTestsBasePath );
+      space.setVariable( EnvironmentUtil.VARIABLE_UNIT_TESTS_BASE_PATH, realValue );
+      if ( modifySystem ) {
+        System.setProperty( EnvironmentUtil.VARIABLE_UNIT_TESTS_BASE_PATH, realValue );
+      }
+    }
+    if ( StringUtils.isNotEmpty( dataSetsCsvFolder ) ) {
+      String realValue = space.environmentSubstitute( dataSetsCsvFolder );
+      space.setVariable( EnvironmentUtil.VARIABLE_DATASETS_BASE_PATH, realValue );
+      if ( modifySystem ) {
+        System.setProperty( EnvironmentUtil.VARIABLE_DATASETS_BASE_PATH, realValue );
+      }
+    }
+
+    for ( EnvironmentVariable variable : variables ) {
+      if ( variable.getName() != null ) {
+        space.setVariable( variable.getName(), variable.getValue() );
+        if ( modifySystem ) {
+          System.setProperty( variable.getName(), variable.getValue() );
+        }
+      }
+    }
   }
 
   /**
@@ -126,19 +202,35 @@ public class Environment {
   }
 
   /**
-   * Gets homeFolder
+   * Gets environmentHomeFolder
    *
-   * @return value of homeFolder
+   * @return value of environmentHomeFolder
    */
-  public String getHomeFolder() {
-    return homeFolder;
+  public String getEnvironmentHomeFolder() {
+    return environmentHomeFolder;
   }
 
   /**
-   * @param homeFolder The homeFolder to set
+   * @param environmentHomeFolder The environmentHomeFolder to set
    */
-  public void setHomeFolder( String homeFolder ) {
-    this.homeFolder = homeFolder;
+  public void setEnvironmentHomeFolder( String environmentHomeFolder ) {
+    this.environmentHomeFolder = environmentHomeFolder;
+  }
+
+  /**
+   * Gets kettleHomeFolder
+   *
+   * @return value of kettleHomeFolder
+   */
+  public String getKettleHomeFolder() {
+    return kettleHomeFolder;
+  }
+
+  /**
+   * @param kettleHomeFolder The kettleHomeFolder to set
+   */
+  public void setKettleHomeFolder( String kettleHomeFolder ) {
+    this.kettleHomeFolder = kettleHomeFolder;
   }
 
   /**
@@ -252,4 +344,5 @@ public class Environment {
   public void setVariables( List<EnvironmentVariable> variables ) {
     this.variables = variables;
   }
+
 }
