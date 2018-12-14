@@ -1,4 +1,4 @@
-package org.kettle.env;
+package org.kettle.env.environment;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.swt.SWT;
@@ -12,6 +12,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.kettle.env.config.EnvironmentConfig;
+import org.kettle.env.config.EnvironmentConfigDialog;
+import org.kettle.env.config.EnvironmentConfigSingleton;
+import org.kettle.env.util.Defaults;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
 import org.pentaho.di.metastore.MetaStoreConst;
@@ -28,8 +32,6 @@ import java.util.Collections;
 public class EnvironmentsDialog extends Dialog {
 
   private static Class<?> PKG = EnvironmentsDialog.class; // for i18n purposes, needed by Translator2!!
-
-  public static final String LAST_USED_ENVIRONMENT = "LAST_USED_ENVIRONMENT";
 
   private String lastEnvironment;
   private String selectedEnvironment;
@@ -50,7 +52,7 @@ public class EnvironmentsDialog extends Dialog {
 
     environmentFactory = EnvironmentSingleton.getEnvironmentFactory();
 
-    lastEnvironment = PropsUI.getInstance().getProperty( LAST_USED_ENVIRONMENT );
+    lastEnvironment = EnvironmentConfigSingleton.getConfig().getLastUsedEnvironment();
     selectedEnvironment = null;
   }
 
@@ -77,6 +79,9 @@ public class EnvironmentsDialog extends Dialog {
     Button wAddDefault = new Button( shell, SWT.PUSH );
     wAddDefault.setText( "Add Default" );
     wAddDefault.addListener( SWT.Selection, event -> addDefault() );
+    Button wEditConfig = new Button( shell, SWT.PUSH );
+    wEditConfig.setText( "System Config" );
+    wEditConfig.addListener( SWT.Selection, event -> editConfiguration() );
     Button wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
     wCancel.addListener( SWT.Selection, event -> cancel() );
@@ -93,6 +98,7 @@ public class EnvironmentsDialog extends Dialog {
     //
     Button wbAdd = new Button( shell, SWT.PUSH );
     wbAdd.setImage( GUIResource.getInstance().getImageAdd() );
+    wbAdd.setToolTipText( "Add a new configuration" );
     FormData fdbAdd = new FormData();
     fdbAdd.left = new FormAttachment( 0, 0 );
     fdbAdd.top = new FormAttachment( wlEnvironments, margin * 2 );
@@ -101,6 +107,7 @@ public class EnvironmentsDialog extends Dialog {
 
     Button wbEdit = new Button( shell, SWT.PUSH );
     wbEdit.setImage( GUIResource.getInstance().getImageEdit() );
+    wbEdit.setToolTipText( "Edit the selected configuration" );
     FormData fdbEdit = new FormData();
     fdbEdit.left = new FormAttachment( wbAdd, margin );
     fdbEdit.top = new FormAttachment( wlEnvironments, margin * 2 );
@@ -109,11 +116,29 @@ public class EnvironmentsDialog extends Dialog {
 
     Button wbDelete = new Button( shell, SWT.PUSH );
     wbDelete.setImage( GUIResource.getInstance().getImageDelete() );
+    wbDelete.setToolTipText( "Delete the selected configuration after confirmation" );
     FormData fdbDelete = new FormData();
     fdbDelete.left = new FormAttachment( wbEdit, margin * 2 );
     fdbDelete.top = new FormAttachment( wlEnvironments, margin * 2 );
     wbDelete.setLayoutData( fdbDelete );
     wbDelete.addListener( SWT.Selection, ( e ) -> deleteEnvironment() );
+
+    // Put a label describing config Just above the buttons...
+    //
+    Label wlClarification = new Label( shell, SWT.LEFT );
+    props.setLook( wlClarification );
+    String clarification = "Environments are stored in : ";
+    if (StringUtils.isNotEmpty( System.getProperty( Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER ) )) {
+      clarification+="${"+Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER+"}";
+    } else {
+      clarification+=Defaults.ENVIRONMENT_METASTORE_FOLDER;
+    }
+    wlClarification.setText( clarification );
+    FormData fdlClarification = new FormData();
+    fdlClarification.left = new FormAttachment( 0, 0 );
+    fdlClarification.right = new FormAttachment( 100, 0 );
+    fdlClarification.bottom = new FormAttachment( wOK, -margin*2 );
+    wlClarification.setLayoutData( fdlClarification );
 
     wEnvironments = new List( shell, SWT.LEFT | SWT.BORDER | SWT.SINGLE );
     props.setLook( wEnvironments );
@@ -121,10 +146,10 @@ public class EnvironmentsDialog extends Dialog {
     fdEnvironments.left = new FormAttachment( 0, 0 );
     fdEnvironments.right = new FormAttachment( 100, 0 );
     fdEnvironments.top = new FormAttachment( wbAdd, margin * 2 );
-    fdEnvironments.bottom = new FormAttachment( wOK, -margin * 2 );
+    fdEnvironments.bottom = new FormAttachment( wlClarification, -margin * 2 );
     wEnvironments.setLayoutData( fdEnvironments );
 
-    BaseStepDialog.positionBottomButtons( shell, new Button[] { wOK, wAddDefault, wCancel }, margin, null );
+    BaseStepDialog.positionBottomButtons( shell, new Button[] { wOK, wAddDefault, wEditConfig, wCancel }, margin, null );
 
     // Double click on an environment : select it
     //
@@ -216,6 +241,18 @@ public class EnvironmentsDialog extends Dialog {
       new ErrorDialog( shell, "Error", "Error adding Default environment", e );
     } finally {
       refreshEnvironmentsList();
+    }
+  }
+
+  private void editConfiguration() {
+    try {
+      EnvironmentConfig config = EnvironmentConfigSingleton.getConfig();
+      EnvironmentConfigDialog dialog = new EnvironmentConfigDialog( shell, config );
+      if (dialog.open()) {
+        EnvironmentConfigSingleton.getConfigFactory().saveElement( config );
+      }
+    } catch(Exception e) {
+      new ErrorDialog( shell, "Error", "Error editing configuration", e );
     }
   }
 

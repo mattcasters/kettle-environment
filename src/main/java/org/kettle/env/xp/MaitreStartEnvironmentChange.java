@@ -1,8 +1,9 @@
 package org.kettle.env.xp;
 
 import org.apache.commons.lang.StringUtils;
-import org.kettle.env.Environment;
-import org.kettle.env.EnvironmentSingleton;
+import org.kettle.env.config.EnvironmentConfigSingleton;
+import org.kettle.env.environment.Environment;
+import org.kettle.env.environment.EnvironmentSingleton;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.Const;
@@ -33,8 +34,14 @@ public class MaitreStartEnvironmentChange implements ExtensionPointInterface {
       if ( StringUtils.isNotEmpty( environmentName ) ) {
         log.logBasic("Switching to environment '"+environmentName+"'");
         EnvironmentSingleton.initialize( Defaults.ENVIRONMENT_METASTORE_FOLDER );
-        Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( environmentName );
-        EnvironmentUtil.enableEnvironment( environment, null );
+        EnvironmentConfigSingleton.initialize( EnvironmentSingleton.getEnvironmentMetaStore() );
+
+        // Only move forward if the environment system is enabled...
+        //
+        if (EnvironmentConfigSingleton.getConfig().isEnabled()) {
+          Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( environmentName );
+          EnvironmentUtil.enableEnvironment( environment, null );
+        }
       }
     } catch(Exception e) {
       log.logError("Error switching to environment '"+environmentName+"'");

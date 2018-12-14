@@ -22,9 +22,15 @@
 
 package org.kettle.env.spoon;
 
-import org.kettle.env.Environment;
-import org.kettle.env.EnvironmentSingleton;
-import org.kettle.env.EnvironmentsDialog;
+import org.apache.commons.lang.StringUtils;
+import org.kettle.env.config.EnvironmentConfig;
+import org.kettle.env.config.EnvironmentConfigDialog;
+import org.kettle.env.config.EnvironmentConfigSingleton;
+import org.kettle.env.environment.Environment;
+import org.kettle.env.environment.EnvironmentDialog;
+import org.kettle.env.environment.EnvironmentSingleton;
+import org.kettle.env.environment.EnvironmentsDialog;
+import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.gui.SpoonFactory;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
@@ -66,15 +72,62 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
       String selectedEnvironment = environmentsDialog.open();
       if ( selectedEnvironment != null ) {
 
+        // Save the last used environment
+        //
+        EnvironmentConfigSingleton.getConfig().setLastUsedEnvironment( selectedEnvironment );
+        EnvironmentConfigSingleton.saveConfig();
+
         Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
         spoon.getLog().logBasic( "Setting environment : '" + environment.getName() + "'" );
+
 
         // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
         //
         EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
       }
-    } catch(Exception e) {
+    } catch ( Exception e ) {
       new ErrorDialog( spoon.getShell(), "Error", "Error changing environment", e );
     }
   }
+
+  public void configureEnvironment() {
+    Spoon spoon = Spoon.getInstance();
+    try {
+
+      EnvironmentConfig config = EnvironmentConfigSingleton.getConfig();
+      EnvironmentConfigDialog dialog = new EnvironmentConfigDialog( spoon.getShell(), config );
+      if ( dialog.open() ) {
+        EnvironmentConfigSingleton.getConfigFactory().saveElement( config );
+      }
+
+    } catch ( Exception e ) {
+      new ErrorDialog( spoon.getShell(), "Error", "Error configuring environment", e );
+    }
+  }
+
+  public void editEnvironment() {
+    editActiveEnvironment();
+  }
+
+  public static void editActiveEnvironment() {
+    Spoon spoon = Spoon.getInstance();
+    try {
+
+      String activeEnvironment = System.getProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT );
+      if ( StringUtils.isEmpty( activeEnvironment ) ) {
+        return;
+      }
+
+      Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( activeEnvironment );
+      EnvironmentDialog dialog = new EnvironmentDialog( spoon.getShell(), environment );
+      if ( dialog.open() ) {
+        EnvironmentSingleton.getEnvironmentFactory().saveElement( environment );
+        EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
+      }
+
+    } catch ( Exception e ) {
+      new ErrorDialog( spoon.getShell(), "Error", "Error configuring environment", e );
+    }
+  }
+
 }

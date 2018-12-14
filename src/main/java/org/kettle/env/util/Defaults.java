@@ -9,4 +9,8 @@ public class Defaults {
 
   public static final String ENVIRONMENT_METASTORE_FOLDER = Const.getKettleDirectory()+ File.separator+"environment";
 
+  public static final String VARIABLE_ACTIVE_ENVIRONMENT = "ACTIVE_ENVIRONMENT";
+
+
+  public static final String AREA_DRAWN_ENVIRONMENT_NAME = "Kettle Environment Name";
 }

@@ -1,6 +1,7 @@
-package org.kettle.env;
+package org.kettle.env.environment;
 
 import org.apache.commons.lang.StringUtils;
+import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.variables.VariableSpace;
@@ -62,6 +63,9 @@ public class Environment {
   @MetaStoreAttribute
   private String dataSetsCsvFolder;
 
+  @MetaStoreAttribute(key="enforce_execution_in_environment")
+  private boolean enforcingExecutionInHome;
+
   // Variables
   //
   @MetaStoreAttribute
@@ -74,6 +78,7 @@ public class Environment {
     metaStoreBaseFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
     dataSetsCsvFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}/datasets";
     unitTestsBasePath="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
+    enforcingExecutionInHome=true;
   }
 
   public void modifySystem() {
@@ -89,6 +94,13 @@ public class Environment {
     if (space==null) {
       space = new Variables();
       space.initializeVariablesFrom(null);
+    }
+
+    // Set the name of the active environment
+    //
+    space.setVariable( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL(name, "") );
+    if (modifySystem) {
+      System.setProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL(name, "") );
     }
 
     if ( StringUtils.isNotEmpty( environmentHomeFolder ) ) {
@@ -345,4 +357,19 @@ public class Environment {
     this.variables = variables;
   }
 
+  /**
+   * Gets enforcingExecutionInHome
+   *
+   * @return value of enforcingExecutionInHome
+   */
+  public boolean isEnforcingExecutionInHome() {
+    return enforcingExecutionInHome;
+  }
+
+  /**
+   * @param enforcingExecutionInHome The enforcingExecutionInHome to set
+   */
+  public void setEnforcingExecutionInHome( boolean enforcingExecutionInHome ) {
+    this.enforcingExecutionInHome = enforcingExecutionInHome;
+  }
 }

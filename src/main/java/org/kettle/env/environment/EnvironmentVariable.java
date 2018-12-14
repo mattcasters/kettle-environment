@@ -1,4 +1,4 @@
-package org.kettle.env;
+package org.kettle.env.environment;
 
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 
@@ -10,12 +10,16 @@ public class EnvironmentVariable {
   @MetaStoreAttribute
   private String value;
 
+  @MetaStoreAttribute
+  private String description;
+
   public EnvironmentVariable() {
   }
 
-  public EnvironmentVariable( String name, String value ) {
+  public EnvironmentVariable( String name, String value, String description ) {
     this.name = name;
     this.value = value;
+    this.description = description;
   }
 
   /**
@@ -48,5 +52,21 @@ public class EnvironmentVariable {
    */
   public void setValue( String value ) {
     this.value = value;
+  }
+
+  /**
+   * Gets description
+   *
+   * @return value of description
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * @param description The description to set
+   */
+  public void setDescription( String description ) {
+    this.description = description;
   }
 }

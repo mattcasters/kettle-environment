@@ -1,9 +1,10 @@
 package org.kettle.env.xp;
 
 import org.apache.commons.lang.StringUtils;
-import org.kettle.env.Environment;
-import org.kettle.env.EnvironmentSingleton;
-import org.kettle.env.EnvironmentsDialog;
+import org.kettle.env.config.EnvironmentConfigSingleton;
+import org.kettle.env.environment.Environment;
+import org.kettle.env.environment.EnvironmentSingleton;
+import org.kettle.env.environment.EnvironmentsDialog;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.exception.KettleException;
@@ -46,17 +47,27 @@ public class SpoonStartEnvironmentPrompt implements ExtensionPointInterface {
 
       List<String> environmentNames = EnvironmentSingleton.getEnvironmentFactory().getElementNames();
 
+      EnvironmentConfigSingleton.initialize( EnvironmentSingleton.getEnvironmentMetaStore() );
 
-      EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
-      String selectedEnvironment = environmentsDialog.open();
-      if (selectedEnvironment!=null) {
+      // Only move forward if the environment system is enabled...
+      //
+      if (EnvironmentConfigSingleton.getConfig().isEnabled()) {
+        EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
+        String selectedEnvironment = environmentsDialog.open();
+        if ( selectedEnvironment != null ) {
 
-        Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
-        logChannelInterface.logBasic("Setting environment : '"+environment.getName()+"'");
+          // Save the last used configuration
+          //
+          EnvironmentConfigSingleton.getConfig().setLastUsedEnvironment( selectedEnvironment );
+          EnvironmentConfigSingleton.saveConfig();
 
-        // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
-        //
-        EnvironmentUtil.enableEnvironment(environment, spoon.getMetaStore());
+          Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
+          logChannelInterface.logBasic( "Setting environment : '" + environment.getName() + "'" );
+
+          // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
+          //
+          EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
+        }
       }
 
     } catch(Exception e) {

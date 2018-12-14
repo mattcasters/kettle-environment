@@ -1,15 +1,12 @@
 package org.kettle.env.util;
 
-import org.apache.commons.lang.StringUtils;
-import org.kettle.env.Environment;
-import org.kettle.env.EnvironmentVariable;
+import org.kettle.env.environment.Environment;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.util.EnvUtil;
-import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;

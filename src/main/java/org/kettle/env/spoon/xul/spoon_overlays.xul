@@ -15,7 +15,9 @@
 
     <menu id="environment" label="Environment" accesskey="alt-v">
       <menupopup id="environment-popup">
-        <menuitem id="environment-new" label="Switch" command="environmentHelper.switchEnvironment()"/>
+        <menuitem id="environment-switch" label="Switch Environment" command="environmentHelper.switchEnvironment()"/>
+        <menuitem id="environment-edit" label="Edit active environment" command="environmentHelper.editEnvironment()"/>
+        <menuitem id="environment-system-config" label="Configure System Environment" command="environmentHelper.configureEnvironment()"/>
       </menupopup>
     </menu>
 
