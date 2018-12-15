@@ -11,13 +11,24 @@ import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannelInterface;
+import org.pentaho.di.core.plugins.PluginInterface;
+import org.pentaho.di.core.plugins.PluginRegistry;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.variables.VariableSpace;
+import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.metastore.MetaStoreConst;
+import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.di.ui.spoon.SpoonPerspective;
+import org.pentaho.di.ui.spoon.SpoonPerspectiveManager;
+import org.pentaho.di.ui.spoon.SpoonPluginType;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnvironmentUtil {
 
@@ -68,6 +79,71 @@ public class EnvironmentUtil {
         delegatingMetaStore.setActiveMetaStoreName( metaStore.getName() );
       }
     }
+
+    loadSpoonGitRepository( environment );
+
+
+  }
+
+  /**
+   * Finally, if we're running in Spoon and if the
+   * GitSpoonPlugin is loaded, load the specified repo
+   *
+   * @param environment
+   */
+  public static void loadSpoonGitRepository( Environment environment ) throws KettleException {
+    Spoon spoon = Spoon.getInstance();
+    if ( spoon == null ) {
+      return;
+    }
+
+    PluginInterface gitSpoonPlugin = PluginRegistry.getInstance().getPlugin( SpoonPluginType.class, "GitSpoonPlugin" );
+    if ( gitSpoonPlugin == null ) {
+      return;
+    }
+
+    String repoName = environment.getSpoonGitProject();
+    if ( StringUtils.isEmpty( repoName ) ) {
+      return;
+    }
+
+    VariableSpace space = new Variables();
+    space.initializeVariablesFrom( null );
+
+    String realRepoName = space.environmentSubstitute( repoName );
+    try {
+      SpoonPerspectiveManager perspectiveManager = SpoonPerspectiveManager.getInstance();
+      for ( SpoonPerspective spoonPerspective : perspectiveManager.getPerspectives() ) {
+        if ( spoonPerspective.getId().equals( "010-git" ) ) {
+
+          // This is the one!
+          Method loadRepoMethod = spoonPerspective.getClass().getMethod( "openRepository", String.class );
+          loadRepoMethod.invoke( spoonPerspective, realRepoName );
+
+          break;
+        }
+      }
+    } catch ( Exception e ) {
+      throw new KettleException( "Unable to load git repository", e );
+    }
+
+  }
+
+  public static List<String> getGitRepositoryNames() throws KettleException {
+    SpoonPerspectiveManager perspectiveManager = SpoonPerspectiveManager.getInstance();
+    for ( SpoonPerspective spoonPerspective : perspectiveManager.getPerspectives() ) {
+      if ( spoonPerspective.getId().equals( "010-git" ) ) {
+
+        // This is the one!
+        try {
+          Method getRepoNamesMethod = spoonPerspective.getClass().getMethod( "getRepoNames", new Class<?>[] {} );
+          return (List<String>) getRepoNamesMethod.invoke( spoonPerspective, new Object[] {} );
+        } catch ( Exception e ) {
+          throw new KettleException( "Unable to list Git Repository names", e );
+        }
+      }
+    }
+    return new ArrayList<>();
   }
 
   public static void validateFileInEnvironment( LogChannelInterface log, String transFilename, Environment environment, VariableSpace space ) throws KettleException, FileSystemException {
@@ -75,7 +151,7 @@ public class EnvironmentUtil {
       // See that this filename is located under the environment home folder
       //
       String environmentHome = space.environmentSubstitute( environment.getEnvironmentHomeFolder() );
-      log.logBasic( "Validation against environment home : "+environmentHome );
+      log.logBasic( "Validation against environment home : " + environmentHome );
 
       FileObject envHome = KettleVFS.getFileObject( environmentHome );
       FileObject transFile = KettleVFS.getFileObject( transFilename );
@@ -92,12 +168,12 @@ public class EnvironmentUtil {
 
     // Same?
     if ( filePath.equals( directoryPath ) ) {
-      System.out.println( "Found "+filePath+" in directory "+directoryPath );
+      System.out.println( "Found " + filePath + " in directory " + directoryPath );
       return true;
     }
 
     FileObject parent = file.getParent();
-    if ( parent!=null && isInSubDirectory( parent, directory ) ) {
+    if ( parent != null && isInSubDirectory( parent, directory ) ) {
       return true;
     }
     return false;

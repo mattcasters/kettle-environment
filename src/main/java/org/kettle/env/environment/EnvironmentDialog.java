@@ -21,10 +21,13 @@ import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.core.widget.ColumnInfo;
+import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.persist.MetaStoreFactory;
+
+import java.util.List;
 
 public class EnvironmentDialog extends Dialog {
   private static Class<?> PKG = EnvironmentsDialog.class; // for i18n purposes, needed by Translator2!!
@@ -47,7 +50,7 @@ public class EnvironmentDialog extends Dialog {
   private TextVar wEnvironmentHome;
   private TextVar wKettleHomeFolder;
   private TextVar wMetaStoreBaseFolder;
-  private TextVar wSpoonGitProject;
+  private ComboVar wSpoonGitProject;
   private TextVar wUnitTestsBasePath;
   private TextVar wDataSetCsvFolder;
   private Button wEnforceHomeExecution;
@@ -97,6 +100,14 @@ public class EnvironmentDialog extends Dialog {
     Button wCancel = new Button( shell, SWT.PUSH );
     wCancel.setText( BaseMessages.getString( PKG, "System.Button.Cancel" ) );
     wCancel.addListener( SWT.Selection, event -> cancel() );
+
+    String[] gitRepoNames;
+    try {
+      gitRepoNames = EnvironmentUtil.getGitRepositoryNames().toArray(new String[0]);
+    } catch(Exception e) {
+      e.printStackTrace();
+      gitRepoNames = new String[] {"---Unable to load---"};
+    }
 
     // Buttons go at the bottom of the dialog
     //
@@ -267,8 +278,9 @@ public class EnvironmentDialog extends Dialog {
     fdlSpoonGitProject.right = new FormAttachment( middle, 0 );
     fdlSpoonGitProject.top = new FormAttachment( lastControl, margin );
     wlSpoonGitProject.setLayoutData( fdlSpoonGitProject );
-    wSpoonGitProject = new TextVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
-    props.setLook( wSpoonGitProject );
+    wSpoonGitProject = new ComboVar( space, shell, SWT.SINGLE | SWT.BORDER | SWT.LEFT );
+    // props.setLook( wSpoonGitProject );
+    wSpoonGitProject.setItems( gitRepoNames );
     FormData fdSpoonGitProject = new FormData();
     fdSpoonGitProject.left = new FormAttachment( middle, margin );
     fdSpoonGitProject.right = new FormAttachment( 100, 0 );
