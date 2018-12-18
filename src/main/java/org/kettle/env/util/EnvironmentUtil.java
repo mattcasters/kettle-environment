@@ -5,6 +5,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentSingleton;
+import org.kettle.env.session.EnvironmentSession;
+import org.kettle.env.session.EnvironmentSessionUtil;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
@@ -24,7 +26,9 @@ import org.pentaho.di.ui.spoon.SpoonPerspectiveManager;
 import org.pentaho.di.ui.spoon.SpoonPluginType;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.persist.MetaStoreFactory;
 import org.pentaho.metastore.stores.delegate.DelegatingMetaStore;
+import org.pentaho.metastore.util.PentahoDefaults;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,7 +51,7 @@ public class EnvironmentUtil {
    * @throws MetaStoreException
    */
   public static void enableEnvironment( Environment environment, DelegatingMetaStore delegatingMetaStore ) throws KettleException, MetaStoreException {
-
+    
     environment.modifySystem();
 
     // Create Kettle home folder in case it doesn't exist
@@ -72,7 +76,6 @@ public class EnvironmentUtil {
     if ( delegatingMetaStore != null ) {
       IMetaStore metaStore = delegatingMetaStore.getMetaStore( Const.PENTAHO_METASTORE_NAME );
       if ( metaStore != null ) {
-        System.out.println( "Found metastore '" + metaStore.getName() + "'" );
         int index = delegatingMetaStore.getMetaStoreList().indexOf( metaStore );
         metaStore = MetaStoreConst.openLocalPentahoMetaStore();
         delegatingMetaStore.getMetaStoreList().set( index, metaStore );
@@ -82,7 +85,21 @@ public class EnvironmentUtil {
 
     loadSpoonGitRepository( environment );
 
-
+    // See if we need to restore the default Spoon session for this environment
+    // The name of the session is the name of the environment
+    // This will cause the least amount of issues.
+    //
+    if (Spoon.getInstance()!=null) {
+      if ( environment.isAutoRestoringSpoonSession() ) {
+        MetaStoreFactory<EnvironmentSession> sessionFactory = new MetaStoreFactory<>( EnvironmentSession.class, delegatingMetaStore, PentahoDefaults.NAMESPACE );
+        EnvironmentSession environmentSession = sessionFactory.loadElement( environment.getName() );
+        if ( environmentSession != null ) {
+          // Load this one in Spoon
+          //
+          EnvironmentSessionUtil.restoreSessionInSpoon( environmentSession );
+        }
+      }
+    }
   }
 
   /**

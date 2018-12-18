@@ -43,6 +43,7 @@ public class EnvironmentConfigDialog extends Dialog {
   private Text wName;
   private Text wLastUsedEnvironment;
   private Button wEnabled;
+  private Button wAutoOpen;
 
   private int margin;
   private int middle;
@@ -107,22 +108,40 @@ public class EnvironmentConfigDialog extends Dialog {
     wLastUsedEnvironment.setLayoutData( fdLastUsedEnvironment );
     lastControl = wLastUsedEnvironment;
 
-    Label wlCompany = new Label( shell, SWT.RIGHT );
-    props.setLook( wlCompany );
-    wlCompany.setText( "Enable Kettle Environment? " );
-    FormData fdlCompany = new FormData();
-    fdlCompany.left = new FormAttachment( 0, 0 );
-    fdlCompany.right = new FormAttachment( middle, 0 );
-    fdlCompany.top = new FormAttachment( lastControl, margin );
-    wlCompany.setLayoutData( fdlCompany );
+    Label wlEnabled = new Label( shell, SWT.RIGHT );
+    props.setLook( wlEnabled );
+    wlEnabled.setText( "Enable Kettle Environment? " );
+    FormData fdlEnabled = new FormData();
+    fdlEnabled.left = new FormAttachment( 0, 0 );
+    fdlEnabled.right = new FormAttachment( middle, 0 );
+    fdlEnabled.top = new FormAttachment( lastControl, margin );
+    wlEnabled.setLayoutData( fdlEnabled );
     wEnabled = new Button( shell, SWT.CHECK | SWT.LEFT );
     props.setLook( wEnabled );
-    FormData fdCompany = new FormData();
-    fdCompany.left = new FormAttachment( middle, margin );
-    fdCompany.right = new FormAttachment( 100, 0 );
-    fdCompany.top = new FormAttachment( wlCompany, 0, SWT.CENTER );
-    wEnabled.setLayoutData( fdCompany );
+    FormData fdEnabled = new FormData();
+    fdEnabled.left = new FormAttachment( middle, margin );
+    fdEnabled.right = new FormAttachment( 100, 0 );
+    fdEnabled.top = new FormAttachment( wlEnabled, 0, SWT.CENTER );
+    wEnabled.setLayoutData( fdEnabled );
     lastControl = wEnabled;
+
+    Label wlAutoOpen = new Label( shell, SWT.RIGHT );
+    props.setLook( wlAutoOpen );
+    wlAutoOpen.setText( "Open last environment at Spoon startup? " );
+    FormData fdlAutoOpen = new FormData();
+    fdlAutoOpen.left = new FormAttachment( 0, 0 );
+    fdlAutoOpen.right = new FormAttachment( middle, 0 );
+    fdlAutoOpen.top = new FormAttachment( lastControl, margin );
+    wlAutoOpen.setLayoutData( fdlAutoOpen );
+    wAutoOpen = new Button( shell, SWT.CHECK | SWT.LEFT );
+    props.setLook( wAutoOpen );
+    FormData fdAutoOpen = new FormData();
+    fdAutoOpen.left = new FormAttachment( middle, margin );
+    fdAutoOpen.right = new FormAttachment( 100, 0 );
+    fdAutoOpen.top = new FormAttachment( wlAutoOpen, 0, SWT.CENTER );
+    wAutoOpen.setLayoutData( fdAutoOpen );
+    lastControl = wAutoOpen;
+
 
     Button wOK = new Button( shell, SWT.PUSH );
     wOK.setText( BaseMessages.getString( PKG, "System.Button.OK" ) );
@@ -141,7 +160,6 @@ public class EnvironmentConfigDialog extends Dialog {
     //
     wName.addListener( SWT.DefaultSelection, ( e ) -> ok() );
     wLastUsedEnvironment.addListener( SWT.DefaultSelection, ( e ) -> ok() );
-    wEnabled.addListener( SWT.DefaultSelection, ( e ) -> ok() );
 
     // Set the shell size, based upon previous time...
     BaseStepDialog.setSize( shell );
@@ -181,11 +199,13 @@ public class EnvironmentConfigDialog extends Dialog {
     wName.setText( Const.NVL( config.getName(), "" ) );
     wLastUsedEnvironment.setText( Const.NVL( config.getLastUsedEnvironment(), "" ) );
     wEnabled.setSelection( config.isEnabled() );
+    wAutoOpen.setSelection( config.isOpeningLastEnvironmentAtStartup() );
   }
 
   private void getInfo( EnvironmentConfig conf ) {
     conf.setName( wName.getText() );
     conf.setLastUsedEnvironment( wLastUsedEnvironment.getText() );
     conf.setEnabled( wEnabled.getSelection() );
+    conf.setOpeningLastEnvironmentAtStartup( wAutoOpen.getSelection() );
   }
 }

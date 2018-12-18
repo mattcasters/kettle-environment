@@ -1,6 +1,7 @@
 package org.kettle.env.xp;
 
 import org.apache.commons.lang.StringUtils;
+import org.kettle.env.config.EnvironmentConfig;
 import org.kettle.env.config.EnvironmentConfigSingleton;
 import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentSingleton;
@@ -37,7 +38,7 @@ public class SpoonStartEnvironmentPrompt implements ExtensionPointInterface {
     // Where is the metastore for the environment
     //
     String environmentMetastoreLocation = space.getVariable( Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER );
-    if ( StringUtils.isEmpty(environmentMetastoreLocation)) {
+    if ( StringUtils.isEmpty( environmentMetastoreLocation ) ) {
       environmentMetastoreLocation = Defaults.ENVIRONMENT_METASTORE_FOLDER;
     }
     // Build the metastore for it.
@@ -49,12 +50,20 @@ public class SpoonStartEnvironmentPrompt implements ExtensionPointInterface {
 
       EnvironmentConfigSingleton.initialize( EnvironmentSingleton.getEnvironmentMetaStore() );
 
+      EnvironmentConfig config = EnvironmentConfigSingleton.getConfig();
+
       // Only move forward if the environment system is enabled...
       //
-      if (EnvironmentConfigSingleton.getConfig().isEnabled()) {
-        EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
-        String selectedEnvironment = environmentsDialog.open();
-        if ( selectedEnvironment != null ) {
+      if ( EnvironmentConfigSingleton.getConfig().isEnabled() ) {
+
+        String selectedEnvironment;
+        if ( config.isOpeningLastEnvironmentAtStartup() ) {
+          selectedEnvironment = config.getLastUsedEnvironment();
+        } else {
+          EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
+          selectedEnvironment = environmentsDialog.open();
+        }
+        if ( StringUtils.isNotEmpty( selectedEnvironment ) ) {
 
           // Save the last used configuration
           //
@@ -69,13 +78,9 @@ public class SpoonStartEnvironmentPrompt implements ExtensionPointInterface {
           EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
         }
       }
-
-    } catch(Exception e) {
-      new ErrorDialog(spoon.getShell(), "Error", "Error initializing the Kettle Environment system", e);
+    } catch ( Exception e ) {
+      new ErrorDialog( spoon.getShell(), "Error", "Error initializing the Kettle Environment system", e );
     }
-
   }
-
-
 
 }

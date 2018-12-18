@@ -27,8 +27,6 @@ import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 
-import java.util.List;
-
 public class EnvironmentDialog extends Dialog {
   private static Class<?> PKG = EnvironmentsDialog.class; // for i18n purposes, needed by Translator2!!
 
@@ -54,6 +52,8 @@ public class EnvironmentDialog extends Dialog {
   private TextVar wUnitTestsBasePath;
   private TextVar wDataSetCsvFolder;
   private Button wEnforceHomeExecution;
+  private Button wAutoSaveSpoonSession;
+  private Button wAutoRestoreSpoonSession;
   private TableView wVariables;
 
   private int margin;
@@ -341,6 +341,40 @@ public class EnvironmentDialog extends Dialog {
     wEnforceHomeExecution.setLayoutData( fdEnforceHomeExecution );
     lastControl = wEnforceHomeExecution;
 
+    Label wlAutoSaveSpoonSession = new Label( shell, SWT.RIGHT );
+    props.setLook( wlAutoSaveSpoonSession );
+    wlAutoSaveSpoonSession.setText( "Automatically save spoon session? " );
+    FormData fdlAutoSaveSpoonSession = new FormData();
+    fdlAutoSaveSpoonSession.left = new FormAttachment( 0, 0 );
+    fdlAutoSaveSpoonSession.right = new FormAttachment( middle, 0 );
+    fdlAutoSaveSpoonSession.top = new FormAttachment( lastControl, margin );
+    wlAutoSaveSpoonSession.setLayoutData( fdlAutoSaveSpoonSession );
+    wAutoSaveSpoonSession = new Button( shell, SWT.CHECK | SWT.LEFT );
+    props.setLook( wAutoSaveSpoonSession );
+    FormData fdAutoSaveSpoonSession = new FormData();
+    fdAutoSaveSpoonSession.left = new FormAttachment( middle, margin );
+    fdAutoSaveSpoonSession.right = new FormAttachment( 100, 0 );
+    fdAutoSaveSpoonSession.top = new FormAttachment( wlAutoSaveSpoonSession, 0, SWT.CENTER );
+    wAutoSaveSpoonSession.setLayoutData( fdAutoSaveSpoonSession );
+    lastControl = wAutoSaveSpoonSession;
+
+    Label wlAutoRestoreSpoonSession = new Label( shell, SWT.RIGHT );
+    props.setLook( wlAutoRestoreSpoonSession );
+    wlAutoRestoreSpoonSession.setText( "Automatically load spoon session? " );
+    FormData fdlAutoRestoreSpoonSession = new FormData();
+    fdlAutoRestoreSpoonSession.left = new FormAttachment( 0, 0 );
+    fdlAutoRestoreSpoonSession.right = new FormAttachment( middle, 0 );
+    fdlAutoRestoreSpoonSession.top = new FormAttachment( lastControl, margin );
+    wlAutoRestoreSpoonSession.setLayoutData( fdlAutoRestoreSpoonSession );
+    wAutoRestoreSpoonSession = new Button( shell, SWT.CHECK | SWT.LEFT );
+    props.setLook( wAutoRestoreSpoonSession );
+    FormData fdAutoRestoreSpoonSession = new FormData();
+    fdAutoRestoreSpoonSession.left = new FormAttachment( middle, margin );
+    fdAutoRestoreSpoonSession.right = new FormAttachment( 100, 0 );
+    fdAutoRestoreSpoonSession.top = new FormAttachment( wlAutoRestoreSpoonSession, 0, SWT.CENTER );
+    wAutoRestoreSpoonSession.setLayoutData( fdAutoRestoreSpoonSession );
+    lastControl = wAutoRestoreSpoonSession;
+
     Label wlVariables = new Label( shell, SWT.RIGHT );
     props.setLook( wlVariables );
     wlVariables.setText( "System variables to set : " );
@@ -437,6 +471,8 @@ public class EnvironmentDialog extends Dialog {
     wUnitTestsBasePath.setText( Const.NVL( environment.getUnitTestsBasePath(), "" ) );
     wDataSetCsvFolder.setText( Const.NVL( environment.getDataSetsCsvFolder(), "" ) );
     wEnforceHomeExecution.setSelection( environment.isEnforcingExecutionInHome() );
+    wAutoSaveSpoonSession.setSelection( environment.isAutoSavingSpoonSession() );
+    wAutoRestoreSpoonSession.setSelection( environment.isAutoRestoringSpoonSession() );
     for ( int i = 0; i < environment.getVariables().size(); i++ ) {
       EnvironmentVariable environmentVariable = environment.getVariables().get( i );
       TableItem item = wVariables.table.getItem( i );
@@ -462,6 +498,8 @@ public class EnvironmentDialog extends Dialog {
     env.setUnitTestsBasePath( wUnitTestsBasePath.getText() );
     env.setDataSetsCsvFolder( wDataSetCsvFolder.getText() );
     env.setEnforcingExecutionInHome( wEnforceHomeExecution.getSelection() );
+    env.setAutoSavingSpoonSession( wAutoSaveSpoonSession.getSelection() );
+    env.setAutoRestoringSpoonSession( wAutoRestoreSpoonSession.getSelection() );
     env.getVariables().clear();
     for ( int i = 0; i < wVariables.nrNonEmpty(); i++ ) {
       TableItem item = wVariables.getNonEmpty( i );

@@ -20,10 +20,14 @@ public class EnvironmentConfig {
   @MetaStoreAttribute
   private boolean enabled;
 
+  @MetaStoreAttribute
+  private boolean openingLastEnvironmentAtStartup;
+
   public EnvironmentConfig() {
     name = SYSTEM_CONFIG_NAME;
     lastUsedEnvironment = null;
     enabled = true;
+    openingLastEnvironmentAtStartup = false;
   }
 
   /**
@@ -72,5 +76,21 @@ public class EnvironmentConfig {
    */
   public void setEnabled( boolean enabled ) {
     this.enabled = enabled;
+  }
+
+  /**
+   * Gets openingLastEnvironmentAtStartup
+   *
+   * @return value of openingLastEnvironmentAtStartup
+   */
+  public boolean isOpeningLastEnvironmentAtStartup() {
+    return openingLastEnvironmentAtStartup;
+  }
+
+  /**
+   * @param openingLastEnvironmentAtStartup The openingLastEnvironmentAtStartup to set
+   */
+  public void setOpeningLastEnvironmentAtStartup( boolean openingLastEnvironmentAtStartup ) {
+    this.openingLastEnvironmentAtStartup = openingLastEnvironmentAtStartup;
   }
 }

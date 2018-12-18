@@ -18,6 +18,14 @@
         <menuitem id="environment-switch" label="Switch Environment" command="environmentHelper.switchEnvironment()"/>
         <menuitem id="environment-edit" label="Edit active environment" command="environmentHelper.editEnvironment()"/>
         <menuitem id="environment-system-config" label="Configure System Environment" command="environmentHelper.configureEnvironment()"/>
+        <menuseparator/>
+        <menuitem id="environment-save-default-session"
+                  label="Save default session"
+                  command="environmentHelper.saveDefaultEnvironmentSession()"/>
+        <menuitem id="environment-load-default-session"
+                  label="Load default session"
+                  command="environmentHelper.loadDefaultEnvironmentSession()"/>
+
       </menupopup>
     </menu>
 

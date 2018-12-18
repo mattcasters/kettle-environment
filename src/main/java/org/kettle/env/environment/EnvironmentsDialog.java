@@ -18,7 +18,6 @@ import org.kettle.env.config.EnvironmentConfigSingleton;
 import org.kettle.env.util.Defaults;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.i18n.BaseMessages;
-import org.pentaho.di.metastore.MetaStoreConst;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.core.gui.GUIResource;
@@ -155,14 +154,15 @@ public class EnvironmentsDialog extends Dialog {
     //
     wEnvironments.addListener( SWT.DefaultSelection, ( e ) -> ok() );
 
-    // Set the shell size, based upon previous time...
-    BaseStepDialog.setSize( shell );
-
     getData();
+
+    wEnvironments.setFocus();
 
     shell.open();
 
-    wEnvironments.setFocus();
+    // Set the shell size, based upon previous time...
+    BaseStepDialog.setSize( shell );
+
 
     while ( !shell.isDisposed() ) {
       if ( !display.readAndDispatch() ) {
@@ -217,6 +217,7 @@ public class EnvironmentsDialog extends Dialog {
 
   private void addEnvironment() {
     Environment environment = new Environment();
+    environment.applySuggestedSettings();
     environment.setName( "Environment #" + (wEnvironments.getItemCount() + 1) );
     EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
     if ( environmentDialog.open() ) {
@@ -233,10 +234,12 @@ public class EnvironmentsDialog extends Dialog {
   private void addDefault() {
     try {
       Environment environment = new Environment();
-      environment.setName( "Default" );
-      environment.setKettleHomeFolder( System.getProperty( "user.home" ) );
-      environment.setMetaStoreBaseFolder( MetaStoreConst.getDefaultPentahoMetaStoreLocation() );
-      environmentFactory.saveElement( environment );
+      environment.applyKettleDefaultSettings();
+
+      EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
+      if (environmentDialog.open()) {
+        environmentFactory.saveElement( environment );
+      }
     } catch ( Exception e ) {
       new ErrorDialog( shell, "Error", "Error adding Default environment", e );
     } finally {

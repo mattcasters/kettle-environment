@@ -30,6 +30,7 @@ import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentDialog;
 import org.kettle.env.environment.EnvironmentSingleton;
 import org.kettle.env.environment.EnvironmentsDialog;
+import org.kettle.env.session.EnvironmentSessionUtil;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.gui.SpoonFactory;
@@ -71,6 +72,10 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
       EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
       String selectedEnvironment = environmentsDialog.open();
       if ( selectedEnvironment != null ) {
+
+        // Save the default session if this is enabled (keep optional, don't force load).
+        //
+        EnvironmentSessionUtil.saveActiveEnvironmentSession(false);
 
         // Save the last used environment
         //
@@ -127,6 +132,22 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
 
     } catch ( Exception e ) {
       new ErrorDialog( spoon.getShell(), "Error", "Error configuring environment", e );
+    }
+  }
+
+  public void saveDefaultEnvironmentSession() {
+    try {
+      EnvironmentSessionUtil.saveActiveEnvironmentSession(true);
+    } catch ( Exception e ) {
+      new ErrorDialog( Spoon.getInstance().getShell(), "Error", "Error saving default environment session", e );
+    }
+  }
+
+  public void loadDefaultEnvironmentSession() {
+    try {
+      EnvironmentSessionUtil.restoreActiveEnvironmentSession( true );
+    } catch ( Exception e ) {
+      new ErrorDialog( Spoon.getInstance().getShell(), "Error", "Error saving default environment session", e );
     }
   }
 

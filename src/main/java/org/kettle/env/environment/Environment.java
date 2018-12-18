@@ -66,6 +66,12 @@ public class Environment {
   @MetaStoreAttribute(key="enforce_execution_in_environment")
   private boolean enforcingExecutionInHome;
 
+  @MetaStoreAttribute
+  private boolean autoSavingSpoonSession;
+
+  @MetaStoreAttribute
+  private boolean autoRestoringSpoonSession;
+
   // Variables
   //
   @MetaStoreAttribute
@@ -74,11 +80,23 @@ public class Environment {
 
   public Environment() {
     variables = new ArrayList<>();
+  }
+
+  public void applySuggestedSettings() {
     environmentHomeFolder="/path/to/your/environment/folder/";
     metaStoreBaseFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
     dataSetsCsvFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}/datasets";
     unitTestsBasePath="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
     enforcingExecutionInHome=true;
+    autoSavingSpoonSession = true;
+    autoRestoringSpoonSession = true;
+  }
+
+  public void applyKettleDefaultSettings() {
+    name = "Default";
+    description = "These are the default settings for Kettle";
+    kettleHomeFolder = "${user.home}";
+    metaStoreBaseFolder = "${user.home}/.pentaho/";
   }
 
   public void modifySystem() {
@@ -371,5 +389,37 @@ public class Environment {
    */
   public void setEnforcingExecutionInHome( boolean enforcingExecutionInHome ) {
     this.enforcingExecutionInHome = enforcingExecutionInHome;
+  }
+
+  /**
+   * Gets autoSavingSpoonSession
+   *
+   * @return value of autoSavingSpoonSession
+   */
+  public boolean isAutoSavingSpoonSession() {
+    return autoSavingSpoonSession;
+  }
+
+  /**
+   * @param autoSavingSpoonSession The autoSavingSpoonSession to set
+   */
+  public void setAutoSavingSpoonSession( boolean autoSavingSpoonSession ) {
+    this.autoSavingSpoonSession = autoSavingSpoonSession;
+  }
+
+  /**
+   * Gets autoRestoringSpoonSession
+   *
+   * @return value of autoRestoringSpoonSession
+   */
+  public boolean isAutoRestoringSpoonSession() {
+    return autoRestoringSpoonSession;
+  }
+
+  /**
+   * @param autoRestoringSpoonSession The autoRestoringSpoonSession to set
+   */
+  public void setAutoRestoringSpoonSession( boolean autoRestoringSpoonSession ) {
+    this.autoRestoringSpoonSession = autoRestoringSpoonSession;
   }
 }
