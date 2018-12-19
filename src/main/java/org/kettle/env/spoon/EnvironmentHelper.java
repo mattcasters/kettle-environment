@@ -34,9 +34,11 @@ import org.kettle.env.session.EnvironmentSessionUtil;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.gui.SpoonFactory;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.spoon.ISpoonMenuController;
 import org.pentaho.di.ui.spoon.Spoon;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.ui.xul.dom.Document;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 
@@ -80,7 +82,11 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
         // Save the last used environment
         //
         EnvironmentConfigSingleton.getConfig().setLastUsedEnvironment( selectedEnvironment );
-        EnvironmentConfigSingleton.saveConfig();
+        try {
+          EnvironmentConfigSingleton.saveConfig();
+        } catch( MetaStoreException e ) {
+          LogChannel.GENERAL.logError( "Error saving the environment system config:", e );
+        }
 
         Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
         spoon.getLog().logBasic( "Setting environment : '" + environment.getName() + "'" );

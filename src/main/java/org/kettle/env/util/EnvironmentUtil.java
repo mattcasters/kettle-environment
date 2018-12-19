@@ -10,16 +10,21 @@ import org.kettle.env.session.EnvironmentSessionUtil;
 import org.pentaho.di.core.Const;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
+import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.di.core.logging.KettleLogStore;
+import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.core.plugins.PluginInterface;
 import org.pentaho.di.core.plugins.PluginRegistry;
+import org.pentaho.di.core.row.value.ValueMetaString;
 import org.pentaho.di.core.util.EnvUtil;
 import org.pentaho.di.core.variables.VariableSpace;
 import org.pentaho.di.core.variables.Variables;
 import org.pentaho.di.core.vfs.KettleVFS;
+import org.pentaho.di.job.JobMeta;
 import org.pentaho.di.metastore.MetaStoreConst;
+import org.pentaho.di.trans.TransMeta;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.di.ui.spoon.SpoonPerspective;
 import org.pentaho.di.ui.spoon.SpoonPerspectiveManager;
@@ -33,6 +38,7 @@ import org.pentaho.metastore.util.PentahoDefaults;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 public class EnvironmentUtil {
 
@@ -51,8 +57,12 @@ public class EnvironmentUtil {
    * @throws MetaStoreException
    */
   public static void enableEnvironment( Environment environment, DelegatingMetaStore delegatingMetaStore ) throws KettleException, MetaStoreException {
-    
-    environment.modifySystem();
+
+    // Variable system variables but also apply them to variables
+    // We'll use those to change the loaded variables in Spoon
+    //
+    VariableSpace variables = new Variables();
+    environment.modifyVariableSpace( variables, true );
 
     // Create Kettle home folder in case it doesn't exist
     //
@@ -83,13 +93,25 @@ public class EnvironmentUtil {
       }
     }
 
-    loadSpoonGitRepository( environment );
-
     // See if we need to restore the default Spoon session for this environment
     // The name of the session is the name of the environment
     // This will cause the least amount of issues.
     //
-    if (Spoon.getInstance()!=null) {
+    Spoon spoon = Spoon.getInstance();
+    if ( spoon != null ) {
+
+      loadSpoonGitRepository( environment );
+
+      // Clear last used, fill it with something useful.
+      //
+      spoon.variables = new RowMetaAndData();
+      for ( String variable : variables.listVariables() ) {
+        String value = variables.getVariable( variable );
+        if ( !variable.startsWith( Const.INTERNAL_VARIABLE_PREFIX ) ) {
+          spoon.variables.addValue( new ValueMetaString( variable ), value );
+        }
+      }
+
       if ( environment.isAutoRestoringSpoonSession() ) {
         MetaStoreFactory<EnvironmentSession> sessionFactory = new MetaStoreFactory<>( EnvironmentSession.class, delegatingMetaStore, PentahoDefaults.NAMESPACE );
         EnvironmentSession environmentSession = sessionFactory.loadElement( environment.getName() );
@@ -97,6 +119,51 @@ public class EnvironmentUtil {
           // Load this one in Spoon
           //
           EnvironmentSessionUtil.restoreSessionInSpoon( environmentSession );
+        }
+      }
+
+
+    }
+  }
+
+  /**
+   * Method copied from Spoon.java because it's private.
+   *
+   * @param spoon
+   * @param vars
+   */
+  private static void fillVariables( Spoon spoon, RowMetaAndData vars ) {
+    TransMeta[] transMetas = spoon.getLoadedTransformations();
+    JobMeta[] jobMetas = spoon.getLoadedJobs();
+    if ( ( transMetas == null || transMetas.length == 0 ) && ( jobMetas == null || jobMetas.length == 0 ) ) {
+      return;
+    }
+
+    Properties sp = new Properties();
+    sp.putAll( System.getProperties() );
+
+    VariableSpace space = Variables.getADefaultVariableSpace();
+    String[] keys = space.listVariables();
+    for ( String key : keys ) {
+      sp.put( key, space.getVariable( key ) );
+    }
+
+    for ( TransMeta transMeta : transMetas ) {
+      List<String> list = transMeta.getUsedVariables();
+      for ( String varName : list ) {
+        String varValue = sp.getProperty( varName, "" );
+        if ( vars.getRowMeta().indexOfValue( varName ) < 0 && !varName.startsWith( Const.INTERNAL_VARIABLE_PREFIX ) ) {
+          vars.addValue( new ValueMetaString( varName ), varValue );
+        }
+      }
+    }
+
+    for ( JobMeta jobMeta : jobMetas ) {
+      List<String> list = jobMeta.getUsedVariables();
+      for ( String varName : list ) {
+        String varValue = sp.getProperty( varName, "" );
+        if ( vars.getRowMeta().indexOfValue( varName ) < 0 && !varName.startsWith( Const.INTERNAL_VARIABLE_PREFIX ) ) {
+          vars.addValue( new ValueMetaString( varName ), varValue );
         }
       }
     }
@@ -124,8 +191,7 @@ public class EnvironmentUtil {
       return;
     }
 
-    VariableSpace space = new Variables();
-    space.initializeVariablesFrom( null );
+    VariableSpace space = Variables.getADefaultVariableSpace();
 
     String realRepoName = space.environmentSubstitute( repoName );
     try {
@@ -141,7 +207,7 @@ public class EnvironmentUtil {
         }
       }
     } catch ( Exception e ) {
-      throw new KettleException( "Unable to load git repository", e );
+      LogChannel.UI.logError( "Unable to open GitSpoon project '"+realRepoName+"'", e);
     }
 
   }

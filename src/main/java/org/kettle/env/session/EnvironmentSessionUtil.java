@@ -113,7 +113,9 @@ public class EnvironmentSessionUtil {
     //
     for ( int i = session.getSessionFiles().size() - 1; i >= 0; i-- ) {
       EnvironmentLastUsedFile lastUsedFile = session.getSessionFiles().get( i );
-      spoon.lastFileSelect( lastUsedFile.createLastUsedFile() );
+      if (lastUsedFile!=null) {
+        spoon.lastFileSelect( lastUsedFile.createLastUsedFile() );
+      }
     }
 
     // TODO: Select the last active file

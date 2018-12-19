@@ -32,9 +32,11 @@ import org.pentaho.di.core.gui.AreaOwner.AreaType;
 import org.pentaho.di.core.gui.BasePainter;
 import org.pentaho.di.core.gui.GCInterface;
 import org.pentaho.di.core.gui.Point;
+import org.pentaho.di.core.gui.PrimitiveGCInterface;
 import org.pentaho.di.core.gui.PrimitiveGCInterface.EColor;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.trans.TransPainter;
+import org.pentaho.di.ui.spoon.SWTGC;
 
 @ExtensionPoint(
   id = "DrawEnvironmentTransExtensionPoint",
@@ -51,39 +53,43 @@ public class DrawEnvironmentTransExtensionPoint implements ExtensionPointInterfa
     TransPainter painter = (TransPainter) object;
 
     String activeEnvironment = System.getProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT );
-    if (StringUtils.isNotEmpty( activeEnvironment )) {
-      drawActiveEnvironment( painter, activeEnvironment);
+    if ( StringUtils.isNotEmpty( activeEnvironment ) ) {
+      drawActiveEnvironment( painter, activeEnvironment );
     }
   }
 
-  public static void drawActiveEnvironment( BasePainter<?,?> painter, String activeEnvironment ) {
+  public static void drawActiveEnvironment( BasePainter<?, ?> painter, String activeEnvironment ) {
 
-    GCInterface gc = painter.getGc();
-    EColor color = EColor.DARKGRAY;
+    GCInterface defaultGc = painter.getGc();
+    if ( defaultGc instanceof SWTGC ) {
+      SWTGC gc = (SWTGC) defaultGc;
 
-    Point textSize = gc.textExtent( activeEnvironment );
+      gc.setFont( "Courier", 8, true, false);
+      gc.setForeground( 180, 180, 180 );
 
-    Point areaSize = painter.getArea();
+      Point textSize = gc.textExtent( activeEnvironment );
 
-    int x = areaSize.x - Math.round((float)textSize.x*painter.getMagnification()) - 20;
-    int y = 10;
+      Point areaSize = painter.getArea();
 
-    // Take zoom into account
-    //
-    x = Math.round( (float)x/painter.getMagnification() );
-    y = Math.round( (float)y/painter.getMagnification() );
+      int x = areaSize.x - Math.round( (float) textSize.x * painter.getMagnification() ) - 20;
+      int y = 10;
+
+      // Take zoom into account
+      //
+      x = Math.round( (float) x / painter.getMagnification() );
+      y = Math.round( (float) y / painter.getMagnification() );
 
 
-    // System.out.println( "Active environment : "+activeEnvironment +", drawing on ("+x+","+y+") : "+textSize.x+"x"+textSize.y+", magnification="+painter.getMagnification());
+      // System.out.println( "Active environment : "+activeEnvironment +", drawing on ("+x+","+y+") : "+textSize.x+"x"+textSize.y+", magnification="+painter.getMagnification());
 
-    gc.setForeground( color );
-    gc.drawText( activeEnvironment, x, y, true );
+      gc.drawText( activeEnvironment, x, y, true );
 
-    // Let the world know where the name of the environment is.
-    // Maybe later we can click on it and edit the properties
-    //
-    painter.getAreaOwners().add(new AreaOwner( AreaType.CUSTOM, x, y, textSize.x, textSize.y, painter.getOffset(),
-        Defaults.AREA_DRAWN_ENVIRONMENT_NAME, activeEnvironment));
+      // Let the world know where the name of the environment is.
+      // Maybe later we can click on it and edit the properties
+      //
+      painter.getAreaOwners().add( new AreaOwner( AreaType.CUSTOM, x, y, textSize.x, textSize.y, painter.getOffset(),
+        Defaults.AREA_DRAWN_ENVIRONMENT_NAME, activeEnvironment ) );
+    }
   }
 
 }

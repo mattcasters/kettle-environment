@@ -107,11 +107,10 @@ public class Environment {
     modifyVariableSpace( space, false );
   }
 
-  private void modifyVariableSpace( VariableSpace space, boolean modifySystem ) {
+  public void modifyVariableSpace( VariableSpace space, boolean modifySystem ) {
 
     if (space==null) {
-      space = new Variables();
-      space.initializeVariablesFrom(null);
+      space = Variables.getADefaultVariableSpace();
     }
 
     // Set the name of the active environment
