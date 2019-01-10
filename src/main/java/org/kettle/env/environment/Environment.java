@@ -63,7 +63,7 @@ public class Environment {
   @MetaStoreAttribute
   private String dataSetsCsvFolder;
 
-  @MetaStoreAttribute(key="enforce_execution_in_environment")
+  @MetaStoreAttribute( key = "enforce_execution_in_environment" )
   private boolean enforcingExecutionInHome;
 
   @MetaStoreAttribute
@@ -83,11 +83,11 @@ public class Environment {
   }
 
   public void applySuggestedSettings() {
-    environmentHomeFolder="/path/to/your/environment/folder/";
-    metaStoreBaseFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
-    dataSetsCsvFolder="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}/datasets";
-    unitTestsBasePath="${"+EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME+"}";
-    enforcingExecutionInHome=true;
+    environmentHomeFolder = "/path/to/your/environment/folder/";
+    metaStoreBaseFolder = "${" + EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME + "}";
+    dataSetsCsvFolder = "${" + EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME + "}/datasets";
+    unitTestsBasePath = "${" + EnvironmentUtil.VARIABLE_ENVIRONMENT_HOME + "}";
+    enforcingExecutionInHome = true;
     autoSavingSpoonSession = true;
     autoRestoringSpoonSession = true;
   }
@@ -109,15 +109,15 @@ public class Environment {
 
   public void modifyVariableSpace( VariableSpace space, boolean modifySystem ) {
 
-    if (space==null) {
+    if ( space == null ) {
       space = Variables.getADefaultVariableSpace();
     }
 
     // Set the name of the active environment
     //
-    space.setVariable( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL(name, "") );
-    if (modifySystem) {
-      System.setProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL(name, "") );
+    space.setVariable( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL( name, "" ) );
+    if ( modifySystem ) {
+      System.setProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT, Const.NVL( name, "" ) );
     }
 
     if ( StringUtils.isNotEmpty( environmentHomeFolder ) ) {
@@ -160,7 +160,11 @@ public class Environment {
       if ( variable.getName() != null ) {
         space.setVariable( variable.getName(), variable.getValue() );
         if ( modifySystem ) {
-          System.setProperty( variable.getName(), variable.getValue() );
+          if ( StringUtils.isEmpty(variable.getValue())) {
+            System.clearProperty( variable.getName() );
+          } else {
+            System.setProperty( variable.getName(), variable.getValue() );
+          }
         }
       }
     }

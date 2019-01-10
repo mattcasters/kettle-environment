@@ -29,7 +29,9 @@ import org.kettle.env.config.EnvironmentConfigSingleton;
 import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentDialog;
 import org.kettle.env.environment.EnvironmentSingleton;
+import org.kettle.env.environment.EnvironmentVariable;
 import org.kettle.env.environment.EnvironmentsDialog;
+import org.kettle.env.session.EnvironmentSession;
 import org.kettle.env.session.EnvironmentSessionUtil;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
@@ -39,6 +41,8 @@ import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.spoon.ISpoonMenuController;
 import org.pentaho.di.ui.spoon.Spoon;
 import org.pentaho.metastore.api.exceptions.MetaStoreException;
+import org.pentaho.metastore.persist.MetaStoreFactory;
+import org.pentaho.metastore.util.PentahoDefaults;
 import org.pentaho.ui.xul.dom.Document;
 import org.pentaho.ui.xul.impl.AbstractXulEventHandler;
 
@@ -77,20 +81,23 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
 
         // Save the default session if this is enabled (keep optional, don't force load).
         //
-        EnvironmentSessionUtil.saveActiveEnvironmentSession(false);
+        EnvironmentSessionUtil.saveActiveEnvironmentSession( false );
+
+        // Disable the active environment in Spoon...
+        //
+        disableActiveEnvironmentSpoon();
 
         // Save the last used environment
         //
         EnvironmentConfigSingleton.getConfig().setLastUsedEnvironment( selectedEnvironment );
         try {
           EnvironmentConfigSingleton.saveConfig();
-        } catch( MetaStoreException e ) {
+        } catch ( MetaStoreException e ) {
           LogChannel.GENERAL.logError( "Error saving the environment system config:", e );
         }
 
         Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
         spoon.getLog().logBasic( "Setting environment : '" + environment.getName() + "'" );
-
 
         // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
         //
@@ -98,6 +105,28 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
       }
     } catch ( Exception e ) {
       new ErrorDialog( spoon.getShell(), "Error", "Error changing environment", e );
+    }
+  }
+
+  public void disableActiveEnvironmentSpoon() throws MetaStoreException {
+    Spoon spoon = Spoon.getInstance();
+    if ( spoon != null ) {
+      String activeEnvironmentName = System.getProperty( Defaults.VARIABLE_ACTIVE_ENVIRONMENT );
+      if ( !StringUtils.isEmpty( activeEnvironmentName ) ) {
+        Environment activeEnvironment = EnvironmentSingleton.getEnvironmentFactory().loadElement( activeEnvironmentName );
+        if ( activeEnvironment != null ) {
+
+          // Clear all defined variables in the active environment...
+          // Not all variables are used in all environments...
+          //
+          for ( EnvironmentVariable environmentVariable : activeEnvironment.getVariables()) {
+            if (StringUtils.isNotEmpty( environmentVariable.getName() )) {
+              System.clearProperty( environmentVariable.getName() );
+            }
+          }
+
+        }
+      }
     }
   }
 
@@ -143,7 +172,7 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
 
   public void saveDefaultEnvironmentSession() {
     try {
-      EnvironmentSessionUtil.saveActiveEnvironmentSession(true);
+      EnvironmentSessionUtil.saveActiveEnvironmentSession( true );
     } catch ( Exception e ) {
       new ErrorDialog( Spoon.getInstance().getShell(), "Error", "Error saving default environment session", e );
     }

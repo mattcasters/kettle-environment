@@ -1,12 +1,15 @@
 package org.kettle.env.session;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.vfs2.FileObject;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentSingleton;
 import org.kettle.env.util.Defaults;
 import org.pentaho.di.core.LastUsedFile;
+import org.pentaho.di.core.logging.LogChannel;
+import org.pentaho.di.core.vfs.KettleVFS;
 import org.pentaho.di.repository.Repository;
 import org.pentaho.di.ui.core.PropsUI;
 import org.pentaho.di.ui.spoon.Spoon;
@@ -114,7 +117,33 @@ public class EnvironmentSessionUtil {
     for ( int i = session.getSessionFiles().size() - 1; i >= 0; i-- ) {
       EnvironmentLastUsedFile lastUsedFile = session.getSessionFiles().get( i );
       if (lastUsedFile!=null) {
-        spoon.lastFileSelect( lastUsedFile.createLastUsedFile() );
+        // Only load existing files...
+        //
+        boolean load = true;
+        if (!lastUsedFile.isSourceRepository()) {
+          String filename = lastUsedFile.getFilename();
+          if (StringUtils.isEmpty( filename )) {
+            load = false;
+          } else {
+            try {
+              FileObject fileObject = KettleVFS.getFileObject( filename );
+              if ( !fileObject.exists() ) {
+                load = false;
+                LogChannel.GENERAL.logError("File '"+filename+"' doesn't exist: not loading.");
+              }
+              if ( !fileObject.isReadable()) {
+                load = false;
+                LogChannel.GENERAL.logError("File '"+filename+"' is not readable : not loading.");
+              }
+            } catch(Exception e) {
+              load = false;
+              LogChannel.GENERAL.logError("Error checking state of file '"+filename+"', not loading.", e);
+            }
+          }
+        }
+        if (load) {
+          spoon.lastFileSelect( lastUsedFile.createLastUsedFile() );
+        }
       }
     }
 

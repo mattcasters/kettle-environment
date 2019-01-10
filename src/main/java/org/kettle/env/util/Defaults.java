@@ -13,4 +13,7 @@ public class Defaults {
 
 
   public static final String AREA_DRAWN_ENVIRONMENT_NAME = "Kettle Environment Name";
+
+  public static final String EXTENSION_POINT_ENVIRONMENT_ACTIVATED = "EnvironmentActivated";
+
 }

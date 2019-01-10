@@ -33,32 +33,33 @@ import org.pentaho.di.core.gui.Point;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.di.ui.core.dialog.ErrorDialog;
 import org.pentaho.di.ui.spoon.Spoon;
-import org.pentaho.di.ui.spoon.trans.TransGraphExtension;
+import org.pentaho.di.ui.spoon.job.JobGraphExtension;
 
 @ExtensionPoint(
-  extensionPointId = "TransGraphMouseDown",
-  id = "EnvironmentEditOnMouseClickExtensionPoint",
-  description = "Edit the active environment when we click on its name" )
-public class EnvironmentEditOnMouseClickExtensionPoint implements ExtensionPointInterface {
+  extensionPointId = "JobGraphMouseDown",
+  id = "JobEnvironmentEditOnMouseClickExtensionPoint",
+  description = "Edit the active environment when we click on its name in a job"
+)
+public class JobEnvironmentEditOnMouseClickExtensionPoint implements ExtensionPointInterface {
 
   @Override
   public void callExtensionPoint( LogChannelInterface log, Object object ) throws KettleException {
-    if ( !( object instanceof TransGraphExtension ) ) {
+    if ( !( object instanceof JobGraphExtension ) ) {
       return;
     }
 
-    TransGraphExtension transGraphExtension = (TransGraphExtension) object;
+    JobGraphExtension jobGraphExtension = (JobGraphExtension) object;
 
     Spoon spoon = Spoon.getInstance();
     try {
 
       // Find the location that was clicked on...
       //
-      MouseEvent e = transGraphExtension.getEvent();
-      Point point = transGraphExtension.getPoint();
+      MouseEvent e = jobGraphExtension.getEvent();
+      Point point = jobGraphExtension.getPoint();
 
       if ( e.button == 1 || e.button == 2 ) {
-        AreaOwner areaOwner = transGraphExtension.getTransGraph().getVisibleAreaOwner( point.x, point.y );
+        AreaOwner areaOwner = jobGraphExtension.getJobGraph().getVisibleAreaOwner( point.x, point.y );
         if ( areaOwner != null && areaOwner.getAreaType() != null ) {
           // Check if this is the environment name...
           //

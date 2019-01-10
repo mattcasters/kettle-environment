@@ -12,6 +12,7 @@ import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.KettleEnvironment;
 import org.pentaho.di.core.RowMetaAndData;
 import org.pentaho.di.core.exception.KettleException;
+import org.pentaho.di.core.extension.ExtensionPointHandler;
 import org.pentaho.di.core.logging.KettleLogStore;
 import org.pentaho.di.core.logging.LogChannel;
 import org.pentaho.di.core.logging.LogChannelInterface;
@@ -93,6 +94,10 @@ public class EnvironmentUtil {
       }
     }
 
+    // Signal others that we have a new active environment
+    //
+    ExtensionPointHandler.callExtensionPoint( LogChannel.GENERAL, Defaults.EXTENSION_POINT_ENVIRONMENT_ACTIVATED, environment.getName() );
+
     // See if we need to restore the default Spoon session for this environment
     // The name of the session is the name of the environment
     // This will cause the least amount of issues.
@@ -121,8 +126,6 @@ public class EnvironmentUtil {
           EnvironmentSessionUtil.restoreSessionInSpoon( environmentSession );
         }
       }
-
-
     }
   }
 
