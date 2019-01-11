@@ -1,5 +1,8 @@
 package org.kettle.env.environment;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.lang.StringUtils;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
@@ -9,6 +12,7 @@ import org.pentaho.di.core.variables.Variables;
 import org.pentaho.metastore.persist.MetaStoreAttribute;
 import org.pentaho.metastore.persist.MetaStoreElementType;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,6 +85,19 @@ public class Environment {
   public Environment() {
     variables = new ArrayList<>();
   }
+
+  public String toJsonString() throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    objectMapper.setSerializationInclusion( JsonInclude.Include.NON_DEFAULT );
+    objectMapper.enable( SerializationFeature.INDENT_OUTPUT );
+    return objectMapper.writeValueAsString( this );
+  }
+
+  public static Environment fromJsonString( String jsonString ) throws IOException {
+    ObjectMapper objectMapper = new ObjectMapper();
+    return objectMapper.readValue( jsonString, Environment.class );
+  }
+
 
   public void applySuggestedSettings() {
     environmentHomeFolder = "/path/to/your/environment/folder/";
@@ -160,7 +177,7 @@ public class Environment {
       if ( variable.getName() != null ) {
         space.setVariable( variable.getName(), variable.getValue() );
         if ( modifySystem ) {
-          if ( StringUtils.isEmpty(variable.getValue())) {
+          if ( StringUtils.isEmpty( variable.getValue() ) ) {
             System.clearProperty( variable.getName() );
           } else {
             System.setProperty( variable.getName(), variable.getValue() );

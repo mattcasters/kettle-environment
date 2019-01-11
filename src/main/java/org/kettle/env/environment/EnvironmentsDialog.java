@@ -8,6 +8,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.MessageBox;
@@ -26,6 +27,9 @@ import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.api.IMetaStore;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 
 public class EnvironmentsDialog extends Dialog {
@@ -122,21 +126,40 @@ public class EnvironmentsDialog extends Dialog {
     wbDelete.setLayoutData( fdbDelete );
     wbDelete.addListener( SWT.Selection, ( e ) -> deleteEnvironment() );
 
+    Button wbImport = new Button( shell, SWT.PUSH );
+    wbImport.setImage( GUIResource.getInstance().getImageFolder() );
+    wbImport.setToolTipText( "Import an environment from a JSON file" );
+    FormData fdbImport = new FormData();
+    fdbImport.left = new FormAttachment( wbDelete, margin * 2 );
+    fdbImport.top = new FormAttachment( wlEnvironments, margin * 2 );
+    wbImport.setLayoutData( fdbImport );
+    wbImport.addListener( SWT.Selection, ( e ) -> importEnvironment() );
+
+    Button wbExport = new Button( shell, SWT.PUSH );
+    wbExport.setImage( GUIResource.getInstance().getImageExport() );
+    wbExport.setToolTipText( "Export an environment to a JSON file" );
+    FormData fdbExport = new FormData();
+    fdbExport.left = new FormAttachment( wbImport, margin * 2 );
+    fdbExport.top = new FormAttachment( wlEnvironments, margin * 2 );
+    wbExport.setLayoutData( fdbExport );
+    wbExport.addListener( SWT.Selection, ( e ) -> exportEnvironment() );
+
+
     // Put a label describing config Just above the buttons...
     //
     Label wlClarification = new Label( shell, SWT.LEFT );
     props.setLook( wlClarification );
     String clarification = "Environments are stored in : ";
-    if (StringUtils.isNotEmpty( System.getProperty( Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER ) )) {
-      clarification+="${"+Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER+"}";
+    if ( StringUtils.isNotEmpty( System.getProperty( Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER ) ) ) {
+      clarification += "${" + Defaults.VARIABLE_ENVIRONMENT_METASTORE_FOLDER + "}";
     } else {
-      clarification+=Defaults.ENVIRONMENT_METASTORE_FOLDER;
+      clarification += Defaults.ENVIRONMENT_METASTORE_FOLDER;
     }
     wlClarification.setText( clarification );
     FormData fdlClarification = new FormData();
     fdlClarification.left = new FormAttachment( 0, 0 );
     fdlClarification.right = new FormAttachment( 100, 0 );
-    fdlClarification.bottom = new FormAttachment( wOK, -margin*2 );
+    fdlClarification.bottom = new FormAttachment( wOK, -margin * 2 );
     wlClarification.setLayoutData( fdlClarification );
 
     wEnvironments = new List( shell, SWT.LEFT | SWT.BORDER | SWT.SINGLE );
@@ -182,8 +205,8 @@ public class EnvironmentsDialog extends Dialog {
     MessageBox box = new MessageBox( shell, SWT.ICON_QUESTION | SWT.APPLICATION_MODAL | SWT.YES | SWT.NO );
     box.setText( "Delete environment?" );
     box.setMessage( "Are you sure you want to delete environment '" + selectedEnvironment + "'?" );
-    int anwser = box.open();
-    if ( ( anwser & SWT.YES ) == 0 ) {
+    int answer = box.open();
+    if ( ( answer & SWT.YES ) == 0 ) {
       return;
     }
 
@@ -218,7 +241,7 @@ public class EnvironmentsDialog extends Dialog {
   private void addEnvironment() {
     Environment environment = new Environment();
     environment.applySuggestedSettings();
-    environment.setName( "Environment #" + (wEnvironments.getItemCount() + 1) );
+    environment.setName( "Environment #" + ( wEnvironments.getItemCount() + 1 ) );
     EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
     if ( environmentDialog.open() ) {
       try {
@@ -231,13 +254,91 @@ public class EnvironmentsDialog extends Dialog {
     }
   }
 
+  private void exportEnvironment() {
+    String selection[] = wEnvironments.getSelection();
+    if ( selection.length == 0 ) {
+      return;
+    }
+    String selectedEnvironment = selection[ 0 ];
+    try {
+      Environment environment = environmentFactory.loadElement( selectedEnvironment );
+
+      FileDialog dialog = new FileDialog( shell, SWT.SAVE );
+      dialog.setFilterNames( new String[] { "JSON files", "All Files (*.*)" } );
+      dialog.setFilterExtensions( new String[] { "*.json", "*.*" } );
+      dialog.setFileName( environment.getName().toLowerCase().replace( " ", "-" ) + ".json" );
+      String filename = dialog.open();
+      if ( StringUtils.isNotEmpty( filename ) ) {
+        File file = new File( filename );
+        if ( file.exists() ) {
+
+          MessageBox box = new MessageBox( shell, SWT.ICON_QUESTION | SWT.APPLICATION_MODAL | SWT.YES | SWT.NO );
+          box.setText( "Replace file?" );
+          box.setMessage( "Are you sure you want to replace file '" + filename + "'?" );
+          int answer = box.open();
+          if ( ( answer & SWT.YES ) == 0 ) {
+            return;
+          }
+        }
+
+        // Export to the selected file
+        //
+        FileOutputStream fos = new FileOutputStream( filename );
+        String jsonString = environment.toJsonString();
+        fos.write( jsonString.getBytes( "UTF-8" ) );
+        fos.flush();
+        fos.close();
+      }
+    } catch ( Exception e ) {
+      new ErrorDialog( shell, "Error", "Error exporting environment '" + selectedEnvironment + "'", e );
+    } finally {
+      refreshEnvironmentsList();
+    }
+  }
+
+
+  private void importEnvironment() {
+
+    try {
+
+      FileDialog dialog = new FileDialog( shell, SWT.OPEN );
+      dialog.setFilterNames( new String[] { "JSON files", "All Files (*.*)" } );
+      dialog.setFilterExtensions( new String[] { "*.json", "*.*" } );
+      String filename = dialog.open();
+      if ( StringUtils.isNotEmpty( filename ) ) {
+
+        String environmentJsonString = new String( Files.readAllBytes( new File( filename ).toPath() ), "UTF-8" );
+        Environment environment = Environment.fromJsonString( environmentJsonString );
+
+        // Check overwrite
+        //
+        Environment existing = environmentFactory.loadElement( environment.getName() );
+        if ( existing != null ) {
+          MessageBox box = new MessageBox( shell, SWT.ICON_QUESTION | SWT.APPLICATION_MODAL | SWT.YES | SWT.NO );
+          box.setText( "Replace environment?" );
+          box.setMessage( "Are you sure you want to replace environment '" + environment.getName() + "'?" );
+          int answer = box.open();
+          if ( ( answer & SWT.YES ) == 0 ) {
+            return;
+          }
+        }
+        environmentFactory.saveElement( environment );
+      }
+    } catch ( Exception e ) {
+      new ErrorDialog( shell, "Error", "Error importing environment", e );
+    } finally {
+      refreshEnvironmentsList();
+    }
+
+  }
+
   private void addDefault() {
     try {
       Environment environment = new Environment();
       environment.applyKettleDefaultSettings();
 
       EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
-      if (environmentDialog.open()) {
+      if ( environmentDialog.open() ) {
         environmentFactory.saveElement( environment );
       }
     } catch ( Exception e ) {
@@ -251,10 +352,10 @@ public class EnvironmentsDialog extends Dialog {
     try {
       EnvironmentConfig config = EnvironmentConfigSingleton.getConfig();
       EnvironmentConfigDialog dialog = new EnvironmentConfigDialog( shell, config );
-      if (dialog.open()) {
+      if ( dialog.open() ) {
         EnvironmentConfigSingleton.getConfigFactory().saveElement( config );
       }
-    } catch(Exception e) {
+    } catch ( Exception e ) {
       new ErrorDialog( shell, "Error", "Error editing configuration", e );
     }
   }

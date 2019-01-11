@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kettle.env.config.EnvironmentConfigSingleton;
 import org.kettle.env.environment.Environment;
 import org.kettle.env.environment.EnvironmentSingleton;
+import org.kettle.env.environment.EnvironmentVariable;
 import org.kettle.env.util.Defaults;
 import org.kettle.env.util.EnvironmentUtil;
 import org.pentaho.di.core.Const;
@@ -13,6 +14,9 @@ import org.pentaho.di.core.extension.ExtensionPoint;
 import org.pentaho.di.core.extension.ExtensionPointInterface;
 import org.pentaho.di.core.logging.LogChannelInterface;
 import org.pentaho.metastore.persist.MetaStoreFactory;
+
+import java.net.URLDecoder;
+import java.util.Map;
 
 @ExtensionPoint(
   id = "CreateEnvironmentExtensionPoint",
@@ -34,6 +38,7 @@ public class CreateEnvironmentExtensionPoint implements ExtensionPointInterface 
 
     String environmentName = (String) objects[0];
     String baseFolder = (String) objects[1];
+    Map<String, String> variablesToAdd = (Map<String, String>) objects[2];
 
     try {
       if ( StringUtils.isNotEmpty( environmentName ) ) {
@@ -62,6 +67,28 @@ public class CreateEnvironmentExtensionPoint implements ExtensionPointInterface 
             log.logBasic( "Created environment '"+environmentName+"' for base folder '"+baseFolder+"'" );
           }
           environment.setName( environmentName );
+
+          // Apply variables...
+          //
+          if (variablesToAdd!=null) {
+            for (String variableName : variablesToAdd.keySet()) {
+              String valueDescription = variablesToAdd.get( variableName );
+              String variableValue=null;
+              String variableDescription=null;
+              if (StringUtils.isNotEmpty( valueDescription) ) {
+                String[] split = valueDescription.split( ":" );
+                if (split.length>0) {
+                  variableValue = URLDecoder.decode( split[0], "UTF-8" );
+                }
+                if (split.length>1) {
+                  variableValue = URLDecoder.decode( split[1], "UTF-8" );
+                }
+              }
+              environment.getVariables().add(new EnvironmentVariable( variableName, variableValue, variableDescription ) );
+              log.logBasic( "Added variable: '"+variableName+"', value: '"+Const.NVL(variableValue, "")+"', description: '"+Const.NVL(variableDescription,"")+"'" );
+            }
+          }
+
 
           // Save it in the metastore
           //
