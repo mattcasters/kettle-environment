@@ -30,6 +30,13 @@ public class EnvironmentConfig {
     openingLastEnvironmentAtStartup = false;
   }
 
+  public EnvironmentConfig(EnvironmentConfig c) {
+    name = c.name;
+    lastUsedEnvironment = c.lastUsedEnvironment;
+    enabled = c.enabled;
+    openingLastEnvironmentAtStartup = c.openingLastEnvironmentAtStartup;
+  }
+
   /**
    * Gets name
    *

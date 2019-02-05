@@ -258,6 +258,10 @@ public class EnvironmentUtil {
       return true;
     }
 
+    if (filePath.startsWith( directoryPath )) {
+      return true;
+    }
+
     FileObject parent = file.getParent();
     if ( parent != null && isInSubDirectory( parent, directory ) ) {
       return true;

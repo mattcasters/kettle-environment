@@ -34,7 +34,32 @@ public class EnvironmentConfigSingleton {
   }
 
   public static void saveConfig() throws MetaStoreException {
-    configSingleton.configFactory.saveElement( configSingleton.config );
+
+    MetaStoreFactory<EnvironmentConfig> factory = configSingleton.configFactory;
+
+    // See if the config is already available...
+    //
+    EnvironmentConfig backupConfig = factory.loadElement( configSingleton.config.getName() );
+    if (backupConfig!=null) {
+      String backupName = backupConfig.getName()+"_backup";
+      backupConfig.setName(backupName);
+      // Delete the backup to make sure...
+      //
+      if (factory.loadElement( backupName)!=null) {
+        factory.deleteElement( backupName);
+      }
+      // Save the backup
+      //
+      factory.saveElement( backupConfig );
+
+      // Now delete the existing element...
+      //
+      factory.deleteElement( configSingleton.config.getName() );
+    }
+
+    // Now save the element.
+    //
+    factory.saveElement( configSingleton.config );
   }
 
   public static EnvironmentConfig getConfig() {
