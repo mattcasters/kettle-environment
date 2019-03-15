@@ -22,6 +22,7 @@
     <pentaho-kettle.version>8.1-SNAPSHOT</pentaho-kettle.version>
     <mockito-all.version>1.9.5</mockito-all.version>
     <junit.version>4.4</junit.version>
+    <jackson-version>2.9.8</jackson-version>
   </properties>
 
   <repositories>
@@ -58,19 +59,19 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.9.8</version>
+      <version>${jackson-version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>2.9.7</version>
+      <version>${jackson-version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.7</version>
+      <version>${jackson-version}</version>
       <scope>provided</scope>
     </dependency>
 
