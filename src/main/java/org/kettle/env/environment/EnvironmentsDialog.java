@@ -25,6 +25,7 @@ import org.pentaho.di.ui.core.gui.GUIResource;
 import org.pentaho.di.ui.core.gui.WindowProperty;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
 import org.pentaho.metastore.api.IMetaStore;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 
 import java.io.File;
@@ -48,7 +49,7 @@ public class EnvironmentsDialog extends Dialog {
   private int middle;
   private final MetaStoreFactory<Environment> environmentFactory;
 
-  public EnvironmentsDialog( Shell parent, IMetaStore metaStore ) {
+  public EnvironmentsDialog( Shell parent, IMetaStore metaStore ) throws MetaStoreException {
     super( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
 
     props = PropsUI.getInstance();
@@ -242,15 +243,15 @@ public class EnvironmentsDialog extends Dialog {
     Environment environment = new Environment();
     environment.applySuggestedSettings();
     environment.setName( "Environment #" + ( wEnvironments.getItemCount() + 1 ) );
-    EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
-    if ( environmentDialog.open() ) {
-      try {
+    try {
+      EnvironmentDialog environmentDialog = new EnvironmentDialog( shell, environment );
+      if ( environmentDialog.open() ) {
         environmentFactory.saveElement( environment );
-      } catch ( Exception e ) {
-        new ErrorDialog( shell, "Error", "Error adding environment '" + environment.getName() + "'", e );
-      } finally {
-        refreshEnvironmentsList();
       }
+    } catch ( Exception e ) {
+      new ErrorDialog( shell, "Error", "Error adding environment '" + environment.getName() + "'", e );
+    } finally {
+      refreshEnvironmentsList();
     }
   }
 

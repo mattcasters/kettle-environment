@@ -25,6 +25,7 @@ import org.pentaho.di.ui.core.widget.ComboVar;
 import org.pentaho.di.ui.core.widget.TableView;
 import org.pentaho.di.ui.core.widget.TextVar;
 import org.pentaho.di.ui.trans.step.BaseStepDialog;
+import org.pentaho.metastore.api.exceptions.MetaStoreException;
 import org.pentaho.metastore.persist.MetaStoreFactory;
 
 public class EnvironmentDialog extends Dialog {
@@ -62,7 +63,7 @@ public class EnvironmentDialog extends Dialog {
 
   private VariableSpace space;
 
-  public EnvironmentDialog( Shell parent, Environment environment ) {
+  public EnvironmentDialog( Shell parent, Environment environment ) throws MetaStoreException {
     super( parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
 
     this.environment = environment;
