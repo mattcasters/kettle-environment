@@ -126,6 +126,10 @@ public class EnvironmentUtil {
           EnvironmentSessionUtil.restoreSessionInSpoon( environmentSession );
         }
       }
+
+      // Refresh the currently active graph
+      //
+      spoon.refreshGraph();
     }
   }
 
