@@ -129,7 +129,9 @@ public class EnvironmentUtil {
 
       // Refresh the currently active graph
       //
-      spoon.refreshGraph();
+      if (spoon.getActiveMeta()!=null) {
+        spoon.refreshGraph();
+      }
     }
   }
 

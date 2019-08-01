@@ -165,6 +165,9 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
       if ( dialog.open() ) {
         MetaStoreFactory<Environment> factory = EnvironmentSingleton.getEnvironmentFactory();
         factory.saveElement( environment );
+        if (!environment.getName().equals( activeEnvironment )) {
+          factory.deleteElement( activeEnvironment );
+        }
         EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
       }
 

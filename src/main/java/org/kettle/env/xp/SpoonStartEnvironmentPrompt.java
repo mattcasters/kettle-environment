@@ -63,19 +63,35 @@ public class SpoonStartEnvironmentPrompt implements ExtensionPointInterface {
           EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
           selectedEnvironment = environmentsDialog.open();
         }
+
         if ( StringUtils.isNotEmpty( selectedEnvironment ) ) {
+
+          Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
+          if (environment==null) {
+            // Environment no longer exists, pop up dialog
+            //
+            EnvironmentsDialog environmentsDialog = new EnvironmentsDialog( spoon.getShell(), spoon.getMetaStore() );
+            selectedEnvironment = environmentsDialog.open();
+            if (selectedEnvironment==null) {
+              return; // Canceled
+            }
+            environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
+          }
 
           // Save the last used configuration
           //
           EnvironmentConfigSingleton.getConfig().setLastUsedEnvironment( selectedEnvironment );
           EnvironmentConfigSingleton.saveConfig();
 
-          Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( selectedEnvironment );
-          logChannelInterface.logBasic( "Setting environment : '" + environment.getName() + "'" );
-
-          // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
+          // Double check!
           //
-          EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
+          if (environment!=null) {
+            logChannelInterface.logBasic( "Setting environment : '" + environment.getName() + "'" );
+
+            // Set system variables for KETTLE_HOME, PENTAHO_METASTORE_FOLDER, ...
+            //
+            EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
+          }
         }
       }
     } catch ( Exception e ) {
