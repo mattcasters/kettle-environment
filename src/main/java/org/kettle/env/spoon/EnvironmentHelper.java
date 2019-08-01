@@ -23,6 +23,8 @@
 package org.kettle.env.spoon;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.MessageBox;
 import org.kettle.env.config.EnvironmentConfig;
 import org.kettle.env.config.EnvironmentConfigDialog;
 import org.kettle.env.config.EnvironmentConfigSingleton;
@@ -161,7 +163,8 @@ public class EnvironmentHelper extends AbstractXulEventHandler implements ISpoon
       Environment environment = EnvironmentSingleton.getEnvironmentFactory().loadElement( activeEnvironment );
       EnvironmentDialog dialog = new EnvironmentDialog( spoon.getShell(), environment );
       if ( dialog.open() ) {
-        EnvironmentSingleton.getEnvironmentFactory().saveElement( environment );
+        MetaStoreFactory<Environment> factory = EnvironmentSingleton.getEnvironmentFactory();
+        factory.saveElement( environment );
         EnvironmentUtil.enableEnvironment( environment, spoon.getMetaStore() );
       }
 
