@@ -26,6 +26,14 @@ public class JobStartCheckEnvironmentExtensionPoint implements ExtensionPointInt
 
     Job job = (Job) object;
 
+    // Only check for top level jobs
+    if (job.getParentTrans()!=null) {
+      return;
+    }
+    if (job.getParentJob()!=null) {
+      return;
+    }
+
     String jobFilename = job.getFilename();
 
     try {

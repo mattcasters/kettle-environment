@@ -35,6 +35,14 @@ public class TransStartCheckEnvironmentExtensionPoint implements ExtensionPointI
 
     Trans trans = (Trans) object;
 
+    // Only check for top level transformations
+    if (trans.getParentTrans()!=null) {
+      return;
+    }
+    if (trans.getParentJob()!=null) {
+      return;
+    }
+
     String transFilename = trans.getFilename();
 
     try {
