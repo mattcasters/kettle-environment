@@ -22,7 +22,7 @@
     <pentaho-kettle.version>8.2.0.7-719</pentaho-kettle.version>
     <mockito-all.version>1.9.5</mockito-all.version>
     <junit.version>4.4</junit.version>
-    <jackson-version>2.10.0</jackson-version>
+    <jackson-version>2.13.4.1</jackson-version>
   </properties>
 
   <repositories>
